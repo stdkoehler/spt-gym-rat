@@ -1,0 +1,11 @@
+{
+  // Turn the whole mod off without uninstalling it.
+  "enabled": true,
+
+  // Minutes until the gym resets after a workout (how long muscle pain lasts).
+  // Range: 1 to 10080 (one week).
+  //   1440 = vanilla (24 hours)
+  //     60 = 1 hour
+  //     10 = 10 minutes
+  "gymResetMinutes": 1440
+}

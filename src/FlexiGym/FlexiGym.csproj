@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FlexiGym</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+    <!-- Keep in sync with FlexiGymMetadata.cs; package.sh reads the version from the metadata file. -->
+    <Version>0.1.0</Version>
+    <OutputPath>bin\$(Configuration)\$(AssemblyName)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Configurations>Debug;Release</Configurations>
+    <!-- Sdk.Web auto-includes loose files as Content; keep package.sh's staging output out of the build. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Package\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SPTarkov.Common" Version="4.1.1" />
+    <PackageReference Include="SPTarkov.DI" Version="4.1.1" />
+    <PackageReference Include="SPTarkov.Reflection" Version="4.1.1" />
+    <PackageReference Include="SPTarkov.Server.Core" Version="4.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- config.jsonc is user-editable and must ship next to the DLL. -->
+    <Content Include="config.jsonc" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Ship extra data files like this (kept outside the mod project in ../data):
+    <Content Include="..\data\example.json" Link="data\example.json"
+             CopyToOutputDirectory="PreserveNewest" />
+    -->
+  </ItemGroup>
+
+</Project>
