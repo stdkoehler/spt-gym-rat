@@ -14,6 +14,7 @@ using SPTarkov.Server.Core.Models.Enums.Hideout;
 using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Routers.ItemEvents;
 using SPTarkov.Server.Core.Utils;
+using BotBaseHealth = SPTarkov.Server.Core.Models.Eft.Common.Tables.BotBaseHealth;
 
 namespace FlexiGym;
 
@@ -143,7 +144,11 @@ public class FlexiGymMod(
 
                 var result = await original(url, pmcData, body, sessionId, output, ct);
 
-                if (trigger) ClearMusclePain(pmcData);
+                if (trigger)
+                {
+                    ClearMusclePain(pmcData.Health);
+                    SyncHealthChanges(result, sessionId, pmcData);
+                }
                 return result;
             });
 
@@ -151,9 +156,24 @@ public class FlexiGymMod(
         typeof(ItemRouteAction).GetProperty(nameof(ItemRouteAction.Action))!.SetMethod!.Invoke(eatRoute, [wrapped]);
     }
 
-    private static void ClearMusclePain(PmcData pmcData)
+    private static void SyncHealthChanges(ItemEventRouterResponse response, MongoId sessionId, PmcData pmcData)
     {
-        var effects = pmcData.Health?.BodyParts?.GetValueOrDefault("Chest")?.Effects;
+        if (response.ProfileChanges?.TryGetValue(sessionId, out var changes) != true || changes is null) return;
+
+        if (changes.Health is not null)
+        {
+            ClearMusclePain(changes.Health);
+            changes.Health.BodyParts ??= pmcData.Health?.BodyParts;
+        }
+        else if (pmcData.Health is not null)
+        {
+            changes.Health = pmcData.Health;
+        }
+    }
+
+    private static void ClearMusclePain(BotBaseHealth? health)
+    {
+        var effects = health?.BodyParts?.GetValueOrDefault("Chest")?.Effects;
         effects?.Remove("MildMusclePain");
         effects?.Remove("SevereMusclePain");
     }

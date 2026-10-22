@@ -46,7 +46,6 @@ new workouts use the new one. Removing the mod leaves profiles valid.
 
 - The item reset works by wrapping the server's `Eat` route at startup. If SPT changes its
   internals the mod logs an error and keeps the configurable timer working without it.
-- The client may only drop the muscle-pain icon after its next health sync.
 
 ## Repository layout
 

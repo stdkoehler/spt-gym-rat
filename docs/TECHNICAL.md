@@ -25,8 +25,11 @@ The item reset wraps the live `Eat` route of `HealthItemEventRouter`: `ItemEvent
 first router that handles an action and `HealthItemEventRouter` is sealed, so a second router or a
 subclass cannot take over. The wrapper reads the consumed item (template, `Upd.SpawnedInSession`)
 before the original runs (a fully eaten item is gone afterwards), then removes `MildMusclePain` /
-`SevereMusclePain` from the Chest. It sets the init-only `ItemRouteAction.Action` via reflection and
-fails soft: any problem logs an error and leaves the timer feature intact.
+`SevereMusclePain` from the Chest. It also syncs the cleared effects directly into the router's
+response (`output.ProfileChanges[sessionId].Health`) so the client paperdoll and debuff icons update
+immediately in real time without waiting for a subsequent health poll. It sets the init-only
+`ItemRouteAction.Action` via reflection and fails soft: any problem logs an error and leaves the timer
+feature intact.
 
 ### Compatibility & load order
 Any mod modifying gym reset times (such as Server Value Modifier / SVM via `Hideout.MusclePainTime`) writes to the same `HideoutTable.Qte` template values. Whichever mod runs its `OnLoad` last sets the effective passive timer duration. Flexi Gym's item consumption hook (`HookEatRoute`) is completely decoupled from this and continues to clear muscle pain on item consumption regardless of load order.
