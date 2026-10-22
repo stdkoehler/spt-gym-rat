@@ -28,6 +28,11 @@ before the original runs (a fully eaten item is gone afterwards), then removes `
 `SevereMusclePain` from the Chest. It sets the init-only `ItemRouteAction.Action` via reflection and
 fails soft: any problem logs an error and leaves the timer feature intact.
 
+### Compatibility & load order
+Any mod modifying gym reset times (such as Server Value Modifier / SVM via `Hideout.MusclePainTime`) writes to the same `HideoutTable.Qte` template values. Whichever mod runs its `OnLoad` last sets the effective passive timer duration. Flexi Gym's item consumption hook (`HookEatRoute`) is completely decoupled from this and continues to clear muscle pain on item consumption regardless of load order.
+
+For players who only wish to adjust the passive cooldown and already use SVM, SVM serves as an alternative without needing Flexi Gym. Flexi Gym differentiates itself through dynamic item-based resets (with FIR filtering) and lower minimum timer thresholds (down to 1 minute vs. SVM's 5-minute slider minimum).
+
 ## 3. Invariants
 
 - The only profile write is removing `MildMusclePain` / `SevereMusclePain` from the Chest after a configured reset item is consumed.
