@@ -18,5 +18,20 @@
 
   // true  = only items found in raid (FIR) trigger the reset
   // false = any copy of the item works
-  "requireFoundInRaid": true
+  "requireFoundInRaid": true,
+
+  // Active recovery: reset gym cooldown by performing combat feats in raids.
+  "activeRecoveryEnabled": true,
+
+  // true = killing a scav boss (or Rogue boss) clears gym muscle pain
+  "bossKillResets": true,
+
+  // Minimum PMC kills in a single raid to clear gym muscle pain (0 = disabled)
+  "minPmcKillsForReset": 5,
+
+  // true = player must survive/transit the raid for active recovery to trigger
+  "requireSurviveForActiveRecovery": true,
+
+  // true = Therapist sends an in-game message confirming the muscle pain was cleared
+  "notifyOnActiveRecovery": true
 }

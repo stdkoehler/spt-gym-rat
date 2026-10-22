@@ -25,6 +25,21 @@ public class Config
     /// <summary>Only items found in raid trigger the reset.</summary>
     public bool RequireFoundInRaid { get; set; } = true;
 
+    /// <summary>Active recovery resets gym muscle pain when completing strenuous combat feats in raid.</summary>
+    public bool ActiveRecoveryEnabled { get; set; } = true;
+
+    /// <summary>Eliminating a boss in a raid clears gym muscle pain.</summary>
+    public bool BossKillResets { get; set; } = true;
+
+    /// <summary>Number of PMC kills in a raid required to clear muscle pain (0 = disabled).</summary>
+    public int MinPmcKillsForReset { get; set; } = 5;
+
+    /// <summary>Require surviving the raid to trigger active recovery.</summary>
+    public bool RequireSurviveForActiveRecovery { get; set; } = true;
+
+    /// <summary>Send an in-game notification message from Therapist when active recovery triggers.</summary>
+    public bool NotifyOnActiveRecovery { get; set; } = true;
+
     /// <summary>
     /// Parsed by hand rather than through ModHelper, because config.jsonc carries
     /// comments and trailing commas that a strict reader rejects.
@@ -55,6 +70,12 @@ public class Config
         {
             notes.Add($"{nameof(GymResetMinutes)} was {GymResetMinutes}, clamped to {clamped}");
             GymResetMinutes = clamped;
+        }
+
+        if (MinPmcKillsForReset < 0)
+        {
+            notes.Add($"{nameof(MinPmcKillsForReset)} was {MinPmcKillsForReset}, clamped to 0");
+            MinPmcKillsForReset = 0;
         }
 
         return notes;

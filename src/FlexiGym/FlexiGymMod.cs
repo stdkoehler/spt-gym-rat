@@ -4,15 +4,25 @@ using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Callbacks;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.DI.Routing;
+using SPTarkov.Server.Core.Extensions;
+using SPTarkov.Server.Core.Helpers.Bot;
+using SPTarkov.Server.Core.Helpers.Profile;
 using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Request;
 using SPTarkov.Server.Core.Models.Eft.Health;
 using SPTarkov.Server.Core.Models.Eft.ItemEvent;
+using SPTarkov.Server.Core.Models.Eft.Match;
+using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Enums.Hideout;
 using SPTarkov.Server.Core.Models.Spt.Tables;
+using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Routers.ItemEvents;
+using SPTarkov.Server.Core.Routers.Static;
+using SPTarkov.Server.Core.Servers;
+using SPTarkov.Server.Core.Servers.Http;
+using SPTarkov.Server.Core.Services.Commerce;
 using SPTarkov.Server.Core.Utils;
 using BotBaseHealth = SPTarkov.Server.Core.Models.Eft.Common.Tables.BotBaseHealth;
 
@@ -24,6 +34,8 @@ namespace FlexiGym;
 ///  1. Rewriting that duration once at load makes server and client use the configured time.
 ///  2. Consuming a configured item clears the muscle pain at once. The server's "Eat" route is
 ///     wrapped for this (see HookEatRoute); if that fails the mod keeps working without it.
+///  3. Active recovery clears muscle pain upon completing a raid with a boss kill or >=5 PMC kills
+///     (configurable), followed by an in-game notification from Therapist.
 /// A broken config disables the mod instead of crashing the server.
 /// </summary>
 [Injectable(InjectionType.Singleton, TypePriority = OnLoadOrder.PostLoad)]
@@ -31,7 +43,12 @@ public class FlexiGymMod(
     ISptLogger<FlexiGymMod> logger,
     ModHelper modHelper,
     HideoutTable hideoutTable,
-    ItemEventCallbacks itemEventCallbacks) : IOnLoad
+    ItemEventCallbacks itemEventCallbacks,
+    HttpServer httpServer,
+    ProfileHelper profileHelper,
+    BotHelper botHelper,
+    MailSendService mailSendService,
+    SaveServer saveServer) : IOnLoad
 {
     private const string Tag = "[FlexiGym]";
     private const BindingFlags Fields = BindingFlags.NonPublic | BindingFlags.Instance;
@@ -73,6 +90,24 @@ public class FlexiGymMod(
             catch (Exception ex)
             {
                 logger.Error($"{Tag} Could not hook item consumption; item reset disabled.", ex);
+            }
+        }
+
+        if (config.ActiveRecoveryEnabled)
+        {
+            try
+            {
+                HookRaidEnd(config);
+                var triggers = new List<string>();
+                if (config.BossKillResets) triggers.Add("Boss kill");
+                if (config.MinPmcKillsForReset > 0) triggers.Add($">={config.MinPmcKillsForReset} PMC kills");
+                logger.Info($"{Tag} Active recovery enabled ({string.Join(", ", triggers)}" +
+                            (config.RequireSurviveForActiveRecovery ? ", survive required" : "") +
+                            (config.NotifyOnActiveRecovery ? ", Therapist mail alert" : "") + ")");
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"{Tag} Could not hook raid end; active recovery disabled.", ex);
             }
         }
 
@@ -156,6 +191,134 @@ public class FlexiGymMod(
         typeof(ItemRouteAction).GetProperty(nameof(ItemRouteAction.Action))!.SetMethod!.Invoke(eatRoute, [wrapped]);
     }
 
+    /// <summary>
+    /// Hooks MatchStaticRouter's OnAfterAction event to detect raid completion and apply active gym recovery.
+    /// </summary>
+    private void HookRaidEnd(Config config)
+    {
+        var matchRouter = FindMatchStaticRouter(httpServer)
+                          ?? throw new InvalidOperationException("MatchStaticRouter not found in HttpServer");
+
+        matchRouter.OnAfterAction += async (_, args) =>
+        {
+            try
+            {
+                if (args is not StaticDynamicOnAfterEventRequestData afterData) return;
+                if (afterData.Url != "/client/match/local/end") return;
+                if (afterData.RequestData is not EndLocalRaidRequestData raidEnd) return;
+
+                await HandleActiveRecoveryAsync(raidEnd, afterData.SessionId, config);
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"{Tag} Error processing post-raid active recovery.", ex);
+            }
+        };
+    }
+
+    private static MatchStaticRouter? FindMatchStaticRouter(HttpServer server)
+    {
+        var listeners = typeof(HttpServer).GetFields(Fields)
+            .Select(f => f.GetValue(server))
+            .OfType<IEnumerable<IHttpListener>>()
+            .FirstOrDefault();
+        if (listeners is null) return null;
+
+        var sptListener = listeners.OfType<SptHttpListener>().FirstOrDefault();
+        if (sptListener is null) return null;
+
+        var httpRouter = typeof(SptHttpListener).GetFields(Fields)
+            .Select(f => f.GetValue(sptListener))
+            .OfType<HttpRouter>()
+            .FirstOrDefault();
+        if (httpRouter is null) return null;
+
+        var staticRouters = typeof(HttpRouter).GetFields(Fields)
+            .Select(f => f.GetValue(httpRouter))
+            .OfType<IEnumerable<StaticRouter>>()
+            .FirstOrDefault();
+        if (staticRouters is null) return null;
+
+        return staticRouters.OfType<MatchStaticRouter>().FirstOrDefault();
+    }
+
+    private async Task HandleActiveRecoveryAsync(EndLocalRaidRequestData raidEnd, MongoId sessionId, Config config)
+    {
+        if (!config.ActiveRecoveryEnabled) return;
+
+        var serverIdParts = raidEnd.ServerId?.Split('.') ?? [];
+        var isPmc = (serverIdParts.Length > 1 && serverIdParts[1].Contains("pmc", StringComparison.OrdinalIgnoreCase))
+                    || (raidEnd.Results?.Profile?.Info?.Side is not null
+                        && !string.Equals(raidEnd.Results.Profile.Info.Side, "Savage", StringComparison.OrdinalIgnoreCase));
+        if (!isPmc) return;
+
+        var survived = raidEnd.Results is not null
+                       && (raidEnd.Results.IsPlayerSurvived() || raidEnd.Results.IsMapToMapTransfer());
+        if (config.RequireSurviveForActiveRecovery && !survived) return;
+
+        var victims = raidEnd.Results?.Profile?.Stats?.Eft?.Victims ?? [];
+        var bossKilled = false;
+        var pmcKills = 0;
+
+        foreach (var victim in victims)
+        {
+            if (!string.IsNullOrEmpty(victim.Role) && botHelper.IsBotBoss(victim.Role))
+            {
+                bossKilled = true;
+            }
+            else if (botHelper.IsBotPmc(victim.Role)
+                     || string.Equals(victim.Side, "Usec", StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(victim.Side, "Bear", StringComparison.OrdinalIgnoreCase))
+            {
+                pmcKills++;
+            }
+        }
+
+        var bossReset = config.BossKillResets && bossKilled;
+        var pmcReset = config.MinPmcKillsForReset > 0 && pmcKills >= config.MinPmcKillsForReset;
+
+        if (!bossReset && !pmcReset) return;
+
+        var pmcData = profileHelper.GetPmcProfile(sessionId);
+        if (pmcData is null || !HasMusclePain(pmcData.Health)) return;
+
+        ClearMusclePain(pmcData.Health);
+        await saveServer.SaveProfileAsync(sessionId);
+        logger.Success($"{Tag} Active recovery triggered for player {sessionId}! (Boss: {bossKilled}, PMCs: {pmcKills})");
+
+        if (config.NotifyOnActiveRecovery)
+        {
+            var message = BuildRecoveryMessage(bossReset, pmcReset, pmcKills);
+            mailSendService.SendDirectNpcMessageToPlayer(
+                sessionId,
+                Traders.THERAPIST.ToString(),
+                MessageType.NpcTraderMessage,
+                message,
+                null);
+        }
+    }
+
+    private static string BuildRecoveryMessage(bool bossReset, bool pmcReset, int pmcKills)
+    {
+        if (bossReset && pmcReset)
+        {
+            return $"Hello, sweetie. I heard you eliminated a notorious boss and neutralized {pmcKills} PMCs out there. Combat of that intensity pushed your body to its limit and completely worked out your muscle stiffness. Your muscles have fully recovered — you're ready for another workout.";
+        }
+
+        if (bossReset)
+        {
+            return "Hello, sweetie. Word came back that you took down a boss out there. Pushing through combat with that level of adrenaline naturally works out lactic acid buildup. Your muscle stiffness has completely cleared up. Take care of yourself out there.";
+        }
+
+        return $"Hello, sweetie. Word came back that you took down {pmcKills} PMCs during your raid. That level of exertion has flushed the lactic acid right out of your system. Your muscle soreness has completely cleared up — you're ready to hit the gym again.";
+    }
+
+    private static bool HasMusclePain(BotBaseHealth? health)
+    {
+        var effects = health?.BodyParts?.GetValueOrDefault("Chest")?.Effects;
+        return effects is not null && (effects.ContainsKey("MildMusclePain") || effects.ContainsKey("SevereMusclePain"));
+    }
+
     private static void SyncHealthChanges(ItemEventRouterResponse response, MongoId sessionId, PmcData pmcData)
     {
         if (response.ProfileChanges?.TryGetValue(sessionId, out var changes) != true || changes is null) return;
@@ -178,3 +341,4 @@ public class FlexiGymMod(
         effects?.Remove("SevereMusclePain");
     }
 }
+

@@ -31,17 +31,29 @@ immediately in real time without waiting for a subsequent health poll. It sets t
 `ItemRouteAction.Action` via reflection and fails soft: any problem logs an error and leaves the timer
 feature intact.
 
-### Compatibility & load order
-Any mod modifying gym reset times (such as Server Value Modifier / SVM via `Hideout.MusclePainTime`) writes to the same `HideoutTable.Qte` template values. Whichever mod runs its `OnLoad` last sets the effective passive timer duration. Flexi Gym's item consumption hook (`HookEatRoute`) is completely decoupled from this and continues to clear muscle pain on item consumption regardless of load order.
+### Active recovery (raid combat)
+Active recovery hooks the `OnAfterAction` event of `MatchStaticRouter` for `"/client/match/local/end"`.
+`HttpServer` (singleton) is used to locate the active `MatchStaticRouter` instance through `SptHttpListener` -> `HttpRouter`.
+When a raid ends:
+1. Verifies the raid was a PMC session (not Scav) and verifies player survival / transit (`IsPlayerSurvived() || IsMapToMapTransfer()`) if `RequireSurviveForActiveRecovery` is enabled.
+2. Inspects `raidEnd.Results.Profile.Stats.Eft.Victims` using `BotHelper` to identify boss eliminations (`botHelper.IsBotBoss`) and PMC eliminations (`botHelper.IsBotPmc` or side `Usec`/`Bear`).
+3. If criteria are met (`BossKillResets` on boss kill or `MinPmcKillsForReset > 0` reached) and the player has active `MildMusclePain` or `SevereMusclePain` on their chest, muscle pain is removed from `pmcData.Health` and saved to disk via `SaveServer.SaveProfileAsync`.
+4. If `NotifyOnActiveRecovery` is enabled, `MailSendService.SendDirectNpcMessageToPlayer` delivers an in-game dialogue message from Therapist (`Traders.THERAPIST`) explaining that intense physical combat has flushed lactic acid and cleared muscle fatigue.
 
-For players who only wish to adjust the passive cooldown and already use SVM, SVM serves as an alternative without needing Flexi Gym. Flexi Gym differentiates itself through dynamic item-based resets (with FIR filtering) and lower minimum timer thresholds (down to 1 minute vs. SVM's 5-minute slider minimum).
+### Compatibility & load order
+Any mod modifying gym reset times (such as Server Value Modifier / SVM via `Hideout.MusclePainTime`) writes to the same `HideoutTable.Qte` template values. Whichever mod runs its `OnLoad` last sets the effective passive timer duration. Flexi Gym's item consumption hook (`HookEatRoute`) and active recovery hook (`HookRaidEnd`) are completely decoupled from this and continue to clear muscle pain regardless of load order.
+
+For players who only wish to adjust the passive cooldown and already use SVM, SVM serves as an alternative without needing Flexi Gym. Flexi Gym differentiates itself through:
+- Active recovery earned through boss kills or high PMC kill raids with lore-friendly in-game notification.
+- Dynamic item-based resets in hideout (with FIR filtering).
+- Lower minimum timer thresholds (down to 1 minute vs. SVM's 5-minute slider minimum).
 
 ## 3. Invariants
 
-- The only profile write is removing `MildMusclePain` / `SevereMusclePain` from the Chest after a configured reset item is consumed.
+- The only profile write is removing `MildMusclePain` / `SevereMusclePain` from `pmcData.Health.BodyParts["Chest"].Effects` (either via consumed reset item or post-raid active recovery). Never inject custom properties into `pmc.json`.
 - A bad config disables the mod; out-of-range values are clamped (`ConfigCheck`).
 
 ## 4. Testing
 
-`tests/FlexiGym.Tests` covers config parsing, defaults and clamping. The table patch can only be
+`tests/FlexiGym.Tests` covers config parsing, defaults and clamping. The table patch and router hooks can only be
 verified in a running server: check the `[FlexiGym]` log line and train in the gym.
