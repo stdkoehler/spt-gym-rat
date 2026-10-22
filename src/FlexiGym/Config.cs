@@ -19,6 +19,12 @@ public class Config
     /// <summary>Minutes until gym muscle pain (and with it the gym "reset") wears off. Vanilla is 1440 (24h).</summary>
     public int GymResetMinutes { get; set; } = 1440;
 
+    /// <summary>Consuming one of these items (template ids) in the hideout resets the gym immediately.</summary>
+    public List<string> ResetItems { get; set; } = ["5e8f3423fd7471236e6e3b64"]; // Kvass
+
+    /// <summary>Only items found in raid trigger the reset.</summary>
+    public bool RequireFoundInRaid { get; set; } = true;
+
     /// <summary>
     /// Parsed by hand rather than through ModHelper, because config.jsonc carries
     /// comments and trailing commas that a strict reader rejects.

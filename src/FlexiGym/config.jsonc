@@ -7,5 +7,16 @@
   //   1440 = vanilla (24 hours)
   //     60 = 1 hour
   //     10 = 10 minutes
-  "gymResetMinutes": 1440
+  "gymResetMinutes": 1440,
+
+  // Consuming one of these items in the hideout resets the gym immediately
+  // (removes muscle pain). Use item template ids; empty list = feature off.
+  //   5e8f3423fd7471236e6e3b64 = Norvinsky Premium kvass
+  "resetItems": [
+    "5e8f3423fd7471236e6e3b64"
+  ],
+
+  // true  = only items found in raid (FIR) trigger the reset
+  // false = any copy of the item works
+  "requireFoundInRaid": true
 }

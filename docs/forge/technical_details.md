@@ -8,7 +8,7 @@ At server start the mod rewrites the duration of the muscle pain applied after e
 ## What it reads and writes
 
 - Reads: `config.jsonc`, the hideout QTE table.
-- Writes: the in-memory QTE table only. Profiles are never touched.
+- Writes: the in-memory QTE table, and, when a reset item is consumed, removes the muscle pain effect from that profile's chest.
 
 ## Performance
 

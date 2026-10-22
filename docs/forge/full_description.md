@@ -18,9 +18,12 @@ By default the gym resets 24 hours after a workout. Flexi Gym lets you choose an
 - FIKA: not tested
 - Known conflicts: other mods that change gym muscle pain duration
 
+- **Item reset:** consume kvass (found in raid by default) to reset the gym immediately.
+
 ### Configuration
 
-Set `gymResetMinutes` in `config.jsonc`. Valid range: 1 - 10080.
+Set `gymResetMinutes` in `config.jsonc` (1 - 10080). `resetItems` lists the item ids that reset the
+gym when consumed (default: kvass) and `requireFoundInRaid` controls whether they must be FIR.
 
 ### Installation
 

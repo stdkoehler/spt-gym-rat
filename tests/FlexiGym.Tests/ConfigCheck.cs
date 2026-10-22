@@ -29,6 +29,11 @@ public static class ConfigCheck
         Expect("shipped enabled matches the code default", cfg.Enabled == defaults.Enabled);
         Expect("shipped gymResetMinutes matches the code default", cfg.GymResetMinutes == defaults.GymResetMinutes);
 
+        Expect("shipped resetItems matches the code default", cfg.ResetItems.SequenceEqual(defaults.ResetItems));
+        Expect("shipped requireFoundInRaid matches the code default", cfg.RequireFoundInRaid == defaults.RequireFoundInRaid);
+        Expect("kvass is a default reset item", defaults.ResetItems.Contains("5e8f3423fd7471236e6e3b64"));
+        Expect("requireFoundInRaid defaults to true", defaults.RequireFoundInRaid);
+
         var high = new Config { GymResetMinutes = 999999 };
         var notes = high.Sanitise();
         Expect("too-large gymResetMinutes is clamped", high.GymResetMinutes == Config.MaxResetMinutes && notes.Count == 1);
