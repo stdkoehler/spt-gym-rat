@@ -12,6 +12,7 @@ using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Request;
 using SPTarkov.Server.Core.Models.Eft.Health;
+using SPTarkov.Server.Core.Models.Eft.Hideout;
 using SPTarkov.Server.Core.Models.Eft.ItemEvent;
 using SPTarkov.Server.Core.Models.Eft.Match;
 using SPTarkov.Server.Core.Models.Enums;
@@ -36,6 +37,8 @@ namespace FlexiGym;
 ///     wrapped for this (see HookEatRoute); if that fails the mod keeps working without it.
 ///  3. Active recovery clears muscle pain upon completing a raid with a boss kill or >=5 PMC kills
 ///     (configurable), followed by an in-game notification from Therapist.
+///  4. Hideout recovery crafts (Recovery Shower and Nutrition Regime) allow players to clear or reduce
+///     workout muscle pain directly in the hideout upon collecting items (HookTakeProductionRoute).
 /// A broken config disables the mod instead of crashing the server.
 /// </summary>
 [Injectable(InjectionType.Singleton, TypePriority = OnLoadOrder.PostLoad)]
@@ -50,6 +53,9 @@ public class FlexiGymMod(
     MailSendService mailSendService,
     SaveServer saveServer) : IOnLoad
 {
+    public static readonly MongoId ShowerRecipeId = new("66f1e8100000000000000001");
+    public static readonly MongoId NutritionRecipeId = new("66f1e8100000000000000002");
+
     private const string Tag = "[FlexiGym]";
     private const BindingFlags Fields = BindingFlags.NonPublic | BindingFlags.Instance;
 
@@ -108,6 +114,21 @@ public class FlexiGymMod(
             catch (Exception ex)
             {
                 logger.Error($"{Tag} Could not hook raid end; active recovery disabled.", ex);
+            }
+        }
+
+        if (config.HideoutCraftsEnabled)
+        {
+            try
+            {
+                RegisterHideoutCrafts(config);
+                HookTakeProductionRoute(config);
+                logger.Info($"{Tag} Hideout recovery crafts enabled (Recovery Shower in Lavatory lvl {config.ShowerLavatoryLevel}, " +
+                            $"Nutrition Regime in Nutrition Unit lvl {config.NutritionUnitLevel})");
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"{Tag} Could not register hideout recovery crafts; hideout crafts disabled.", ex);
             }
         }
 
@@ -313,10 +334,235 @@ public class FlexiGymMod(
         return $"Hello, sweetie. Word came back that you took down {pmcKills} PMCs during your raid. That level of exertion has flushed the lactic acid right out of your system. Your muscle soreness has completely cleared up — you're ready to hit the gym again.";
     }
 
+    /// <summary>
+    /// Injects the Recovery Shower and Nutrition Regime crafting recipes into HideoutTable.Production.Recipes.
+    /// </summary>
+    private void RegisterHideoutCrafts(Config config)
+    {
+        if (hideoutTable.Production?.Recipes is null)
+        {
+            logger.Warning($"{Tag} HideoutTable.Production.Recipes is null; cannot inject recovery crafts.");
+            return;
+        }
+
+        hideoutTable.Production.Recipes.RemoveAll(r => r.Id == ShowerRecipeId || r.Id == NutritionRecipeId);
+
+        var showerRecipe = new HideoutProduction
+        {
+            Id = ShowerRecipeId,
+            AreaType = HideoutAreas.WaterCloset,
+            ProductionTime = config.ShowerCraftMinutes * 60.0,
+            EndProduct = new MongoId(config.ShowerEndProduct),
+            Count = 1,
+            Continuous = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Requirements =
+            [
+                new Requirement
+                {
+                    Type = RequirementType.Area.ToString(),
+                    AreaType = (int)HideoutAreas.WaterCloset,
+                    RequiredLevel = config.ShowerLavatoryLevel
+                },
+                ..config.ShowerIngredients.Select(id => new Requirement
+                {
+                    Type = RequirementType.Item.ToString(),
+                    TemplateId = new MongoId(id),
+                    Count = 1,
+                    IsSpawnedInSession = config.ShowerRequireFir
+                })
+            ]
+        };
+
+        var nutritionRecipe = new HideoutProduction
+        {
+            Id = NutritionRecipeId,
+            AreaType = HideoutAreas.Kitchen,
+            ProductionTime = config.NutritionCraftMinutes * 60.0,
+            EndProduct = new MongoId(config.NutritionEndProduct),
+            Count = 1,
+            Continuous = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Requirements =
+            [
+                new Requirement
+                {
+                    Type = RequirementType.Area.ToString(),
+                    AreaType = (int)HideoutAreas.Kitchen,
+                    RequiredLevel = config.NutritionUnitLevel
+                },
+                ..config.NutritionIngredients.Select(id => new Requirement
+                {
+                    Type = RequirementType.Item.ToString(),
+                    TemplateId = new MongoId(id),
+                    Count = 1,
+                    IsSpawnedInSession = config.NutritionRequireFir
+                })
+            ]
+        };
+
+        hideoutTable.Production.Recipes.Add(showerRecipe);
+        hideoutTable.Production.Recipes.Add(nutritionRecipe);
+    }
+
+    /// <summary>
+    /// Wraps HideoutTakeProduction in HideoutItemEventRouter to intercept recipe collection and apply workout resets.
+    /// </summary>
+    private void HookTakeProductionRoute(Config config)
+    {
+        var routers = typeof(ItemEventCallbacks).GetFields(Fields)
+            .Select(f => f.GetValue(itemEventCallbacks))
+            .OfType<IEnumerable<ItemEventRouter>>()
+            .FirstOrDefault() ?? throw new InvalidOperationException("router list not found");
+
+        var hideoutRouter = routers.OfType<HideoutItemEventRouter>().FirstOrDefault()
+                            ?? throw new InvalidOperationException("hideout router not found");
+
+        var takeProductionRoute = typeof(ItemEventRouter).GetFields(Fields)
+            .Select(f => f.GetValue(hideoutRouter))
+            .OfType<IEnumerable<ItemRouteAction>>()
+            .SelectMany(r => r)
+            .FirstOrDefault(r => r.Url == "HideoutTakeProduction")
+            ?? throw new InvalidOperationException("HideoutTakeProduction route not found");
+
+        var original = takeProductionRoute.Action;
+
+        var wrapped = new Func<string, PmcData, BaseInteractionRequestData, MongoId, ItemEventRouterResponse,
+            CancellationToken, ValueTask<ItemEventRouterResponse>>(
+            async (url, pmcData, body, sessionId, output, ct) =>
+            {
+                var result = await original(url, pmcData, body, sessionId, output, ct);
+
+                try
+                {
+                    if (body is HideoutTakeProductionRequestData takeRequest)
+                    {
+                        await HandleHideoutCraftTakeAsync(takeRequest.RecipeId, pmcData, sessionId, result, config);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Error($"{Tag} Error processing hideout craft completion.", ex);
+                }
+
+                return result;
+            });
+
+        typeof(ItemRouteAction).GetProperty(nameof(ItemRouteAction.Action))!.SetMethod!.Invoke(takeProductionRoute, [wrapped]);
+    }
+
+    private async Task HandleHideoutCraftTakeAsync(MongoId recipeId, PmcData pmcData, MongoId sessionId,
+        ItemEventRouterResponse result, Config config)
+    {
+        if (result.Warnings is not null && result.Warnings.Count > 0) return;
+
+        if (recipeId == ShowerRecipeId)
+        {
+            ApplyCraftRewardFir(result, pmcData, sessionId, config.ShowerEndProduct, config.ShowerRequireFir);
+
+            var reset = false;
+            if (HasMusclePain(pmcData.Health))
+            {
+                ClearMusclePain(pmcData.Health);
+                SyncHealthChanges(result, sessionId, pmcData);
+                reset = true;
+                logger.Success($"{Tag} Recovery Shower taken: muscle pain fully reset for player {sessionId}!");
+            }
+
+            await saveServer.SaveProfileAsync(sessionId);
+            if (!reset)
+            {
+                logger.Info($"{Tag} Recovery Shower taken by player {sessionId} (FIR: {config.ShowerRequireFir}).");
+            }
+        }
+        else if (recipeId == NutritionRecipeId)
+        {
+            ApplyCraftRewardFir(result, pmcData, sessionId, config.NutritionEndProduct, config.NutritionRequireFir);
+
+            var reduced = false;
+            if (HasMusclePain(pmcData.Health))
+            {
+                ReduceMusclePain(pmcData.Health, config.NutritionReductionFactor);
+                SyncHealthChanges(result, sessionId, pmcData);
+                reduced = true;
+                logger.Success($"{Tag} Nutrition Regime taken: muscle pain reduced by factor {config.NutritionReductionFactor:0.#} for player {sessionId}!");
+            }
+
+            await saveServer.SaveProfileAsync(sessionId);
+            if (!reduced)
+            {
+                logger.Info($"{Tag} Nutrition Regime taken by player {sessionId} (FIR: {config.NutritionRequireFir}).");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Synchronizes the Found-In-Raid status of the produced item with the recipe's FIR requirement.
+    /// If the recipe requires FIR ingredients, the returned item is FIR; otherwise it is non-FIR.
+    /// </summary>
+    private static void ApplyCraftRewardFir(ItemEventRouterResponse response, PmcData pmcData, MongoId sessionId,
+        string endProductTpl, bool isFir)
+    {
+        if (response.ProfileChanges?.TryGetValue(sessionId, out var changes) != true || changes?.Items?.NewItems is null)
+        {
+            return;
+        }
+
+        var endTpl = new MongoId(endProductTpl);
+        var targetItems = changes.Items.NewItems
+            .Where(i => i.Template == endTpl)
+            .ToList();
+
+        foreach (var newItem in targetItems)
+        {
+            newItem.AddUpd();
+            if (newItem.Upd is not null) newItem.Upd.SpawnedInSession = isFir;
+
+            var pmcItem = pmcData.Inventory?.Items?.FirstOrDefault(i => i.Id == newItem.Id);
+            if (pmcItem is not null)
+            {
+                pmcItem.AddUpd();
+                if (pmcItem.Upd is not null) pmcItem.Upd.SpawnedInSession = isFir;
+            }
+        }
+    }
+
     private static bool HasMusclePain(BotBaseHealth? health)
     {
         var effects = health?.BodyParts?.GetValueOrDefault("Chest")?.Effects;
         return effects is not null && (effects.ContainsKey("MildMusclePain") || effects.ContainsKey("SevereMusclePain"));
+    }
+
+    private static void ReduceMusclePain(BotBaseHealth? health, double factor)
+    {
+        if (factor <= 0) return;
+        var effects = health?.BodyParts?.GetValueOrDefault("Chest")?.Effects;
+        if (effects is null) return;
+
+        foreach (var key in new[] { "MildMusclePain", "SevereMusclePain" })
+        {
+            if (effects.TryGetValue(key, out var effect) && effect is not null)
+            {
+                if (effect.Time.HasValue)
+                {
+                    var newTime = Math.Round(effect.Time.Value / factor);
+                    if (newTime <= 0)
+                    {
+                        effects.Remove(key);
+                    }
+                    else
+                    {
+                        effect.Time = newTime;
+                    }
+                }
+                else
+                {
+                    effects.Remove(key);
+                }
+            }
+        }
     }
 
     private static void SyncHealthChanges(ItemEventRouterResponse response, MongoId sessionId, PmcData pmcData)
@@ -325,8 +571,21 @@ public class FlexiGymMod(
 
         if (changes.Health is not null)
         {
-            ClearMusclePain(changes.Health);
-            changes.Health.BodyParts ??= pmcData.Health?.BodyParts;
+            if (changes.Health.BodyParts is null)
+            {
+                changes.Health.BodyParts = pmcData.Health?.BodyParts;
+            }
+            else if (pmcData.Health?.BodyParts?.TryGetValue("Chest", out var pmcChest) == true)
+            {
+                if (changes.Health.BodyParts.TryGetValue("Chest", out var changeChest))
+                {
+                    changeChest.Effects = pmcChest.Effects;
+                }
+                else
+                {
+                    changes.Health.BodyParts["Chest"] = pmcChest;
+                }
+            }
         }
         else if (pmcData.Health is not null)
         {

@@ -40,20 +40,33 @@ When a raid ends:
 3. If criteria are met (`BossKillResets` on boss kill or `MinPmcKillsForReset > 0` reached) and the player has active `MildMusclePain` or `SevereMusclePain` on their chest, muscle pain is removed from `pmcData.Health` and saved to disk via `SaveServer.SaveProfileAsync`.
 4. If `NotifyOnActiveRecovery` is enabled, `MailSendService.SendDirectNpcMessageToPlayer` delivers an in-game dialogue message from Therapist (`Traders.THERAPIST`) explaining that intense physical combat has flushed lactic acid and cleared muscle fatigue.
 
+### Hideout recovery crafts
+Hideout crafting recipes are injected in-memory into `HideoutTable.Production.Recipes` during `OnLoad`:
+- **Recovery Shower (Lavatory lvl 3):** Requires Found-In-Raid ingredients (default: 1x Soap, 1x Shampoo, 1x Canister with purified water (superwater), 1x Fleece fabric; returns 1x Fleece fabric). Completely resets workout muscle pain.
+- **Nutrition Regime (Nutrition Unit lvl 1):** Requires Found-In-Raid ingredients (default: 1x Can of Hot Rod energy, 1x Bottle of OLOLO multivitamins, 1x Can of beef stew small, 1x Zibbo lighter; returns 1x Zibbo lighter). Reduces remaining muscle pain cooldown by factor 6 (`Time = Math.Round(Time / 6.0)`).
+
+The live `HideoutTakeProduction` route in `HideoutItemEventRouter` is wrapped via reflection (`HookTakeProductionRoute`). When the player clicks "Get Items", the completed recipe ID is identified:
+- The produced items dynamically match the recipe's FIR configuration: if the recipe requires FIR ingredients, the returned item is marked Found-In-Raid; if the recipe does not require FIR, the returned item is non-FIR (preventing unintended infinite craft loops when FIR is off).
+- The chest muscle pain effects are cleared or scaled down on `pmcData.Health`.
+- The real-time health state is synchronized into `output.ProfileChanges[sessionId].Health` so the client UI updates immediately without needing to exit the hideout or wait for health polling.
+- The profile is committed to disk via `SaveServer.SaveProfileAsync`.
+
 ### Compatibility & load order
-Any mod modifying gym reset times (such as Server Value Modifier / SVM via `Hideout.MusclePainTime`) writes to the same `HideoutTable.Qte` template values. Whichever mod runs its `OnLoad` last sets the effective passive timer duration. Flexi Gym's item consumption hook (`HookEatRoute`) and active recovery hook (`HookRaidEnd`) are completely decoupled from this and continue to clear muscle pain regardless of load order.
+Any mod modifying gym reset times (such as Server Value Modifier / SVM via `Hideout.MusclePainTime`) writes to the same `HideoutTable.Qte` template values. Whichever mod runs its `OnLoad` last sets the effective passive timer duration. Flexi Gym's item consumption hook (`HookEatRoute`), active recovery hook (`HookRaidEnd`), and hideout craft hook (`HookTakeProductionRoute`) are completely decoupled from this and continue to operate regardless of load order.
 
 For players who only wish to adjust the passive cooldown and already use SVM, SVM serves as an alternative without needing Flexi Gym. Flexi Gym differentiates itself through:
+- In-hideout FIR crafting recipes (Recovery Shower in Lavatory and Nutrition Regime in Nutrition Unit).
 - Active recovery earned through boss kills or high PMC kill raids with lore-friendly in-game notification.
 - Dynamic item-based resets in hideout (with FIR filtering).
 - Lower minimum timer thresholds (down to 1 minute vs. SVM's 5-minute slider minimum).
 
 ## 3. Invariants
 
-- The only profile write is removing `MildMusclePain` / `SevereMusclePain` from `pmcData.Health.BodyParts["Chest"].Effects` (either via consumed reset item or post-raid active recovery). Never inject custom properties into `pmc.json`.
+- The only profile write is removing `MildMusclePain` / `SevereMusclePain` or updating its `Time` in `pmcData.Health.BodyParts["Chest"].Effects`. Never inject custom properties into `pmc.json`.
 - A bad config disables the mod; out-of-range values are clamped (`ConfigCheck`).
 
 ## 4. Testing
 
-`tests/FlexiGym.Tests` covers config parsing, defaults and clamping. The table patch and router hooks can only be
+`tests/FlexiGym.Tests` covers config parsing, defaults and clamping. The table patch, hideout recipes, and router hooks can only be
 verified in a running server: check the `[FlexiGym]` log line and train in the gym.
+

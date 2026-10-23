@@ -33,5 +33,33 @@
   "requireSurviveForActiveRecovery": true,
 
   // true = Therapist sends an in-game message confirming the muscle pain was cleared
-  "notifyOnActiveRecovery": true
+  "notifyOnActiveRecovery": true,
+
+  // Hideout recovery crafts: earn workout resets or cooldown reductions via the Hideout.
+  "hideoutCraftsEnabled": true,
+
+  // Recovery Shower craft (Lavatory): completely resets workout muscle pain on "Get Items".
+  "showerCraftMinutes": 30,
+  "showerLavatoryLevel": 3,
+  "showerRequireFir": true,
+  "showerIngredients": [
+    "5c13cd2486f774072c757944", // Soap
+    "5d40412b86f7743cb332ac3a", // Shampoo
+    "5d1b33a686f7742523398398", // Canister with purified water (superwater)
+    "5e2af47786f7746d404f3aaa"  // Fleece fabric
+  ],
+  "showerEndProduct": "5e2af47786f7746d404f3aaa", // Fleece fabric
+
+  // Nutrition Regime craft (Nutrition Unit): reduces remaining muscle pain cooldown by factor (e.g. 6 = /6).
+  "nutritionCraftMinutes": 15,
+  "nutritionUnitLevel": 1,
+  "nutritionReductionFactor": 6.0,
+  "nutritionRequireFir": true,
+  "nutritionIngredients": [
+    "5751496424597720a27126da", // Can of Hot Rod energy
+    "62a0a043cf4a99369e2624a5", // Bottle of OLOLO multivitamins
+    "57347d7224597744596b4e72", // Can of beef stew (small)
+    "56742c2e4bdc2d95058b456d"  // Zibbo lighter
+  ],
+  "nutritionEndProduct": "56742c2e4bdc2d95058b456d" // Zibbo lighter
 }
