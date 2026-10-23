@@ -8,7 +8,7 @@ Builds against **SPT 4.1.x** / .NET 10.
 | `FlexiGym/Config.cs` | Config (`enabled`, `gymResetMinutes`) with range clamping. No SPT dependency, so tests compile it. |
 | `FlexiGym/FlexiGymMetadata.cs` | SPT mod manifest (GUID, version, SPT range, incompatibilities). |
 | `FlexiGym/config.jsonc` | User-editable settings, shipped next to the DLL. |
-| `FlexiGym/package.sh` | Test -> Release build -> zip in `SPT_Runtime/user/mods/` layout. |
+| `FlexiGym/package.sh` | Test -> Release build -> zip with `BepInEx/` and `SPT_Runtime/user/mods/`. |
 
 ## Conventions worth keeping
 

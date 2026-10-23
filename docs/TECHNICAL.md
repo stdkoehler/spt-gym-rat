@@ -51,6 +51,17 @@ The live `HideoutTakeProduction` route in `HideoutItemEventRouter` is wrapped vi
 - The real-time health state is synchronized into `output.ProfileChanges[sessionId].Health` so the client UI updates immediately without needing to exit the hideout or wait for health polling.
 - The profile is committed to disk via `SaveServer.SaveProfileAsync`.
 
+### Client-side UI enhancements (`FlexiGymClient.dll`)
+To solve the discovery and clarity problem of Hideout recovery crafts without touching profile items or modifying vanilla templates in the database:
+- `FlexiGymClient` is a lightweight BepInEx plugin running on the client via Harmony (`src/FlexiGym.Client/`).
+- It hooks `ProduceView.Show` and `ProduceView.UpdateButtonsActiveness`.
+- When rendering the Recovery Shower or Nutrition Regime recipes:
+  - Injects a styled card banner across the top: `[RECOVERY SHOWER] • Resets Workout Muscle Soreness` or `[NUTRITION REGIME] • Accelerates Muscle Recovery (6x faster)`.
+  - Replaces the generic `START` button label with `TAKE SHOWER` / `START REGIME` with detailed action tooltips.
+  - Updates the `GET ITEMS` button label to `TAKE SHOWER` / `FINISH REGIME`.
+  - Updates the result item tile caption to `SHOWER` (cyan) or `NUTRITION` (gold).
+- Packaged automatically into `BepInEx/plugins/FlexiGymClient.dll` alongside the server mod in `package.sh`.
+
 ### Compatibility & load order
 Any mod modifying gym reset times (such as Server Value Modifier / SVM via `Hideout.MusclePainTime`) writes to the same `HideoutTable.Qte` template values. Whichever mod runs its `OnLoad` last sets the effective passive timer duration. Flexi Gym's item consumption hook (`HookEatRoute`), active recovery hook (`HookRaidEnd`), and hideout craft hook (`HookTakeProductionRoute`) are completely decoupled from this and continue to operate regardless of load order.
 

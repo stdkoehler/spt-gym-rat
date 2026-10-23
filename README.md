@@ -7,13 +7,26 @@ pick any time from 1 minute to one week in `config.jsonc`, optionally lets the p
 an item (kvass by default) in the hideout to reset it at once, and rewards high-intensity raids with
 **Active Recovery** (eliminating a boss or achieving >= 5 PMC kills clears muscle fatigue, confirmed by a message from Therapist).
 
+## Features
+
+- **Custom Passive Gym Timer:** Configure gym reset interval anywhere from 1 minute to 1 week (vanilla default: 24h).
+- **Hideout Recovery Crafts:**
+  - **Recovery Shower (Lavatory lvl 3):** Clean up with Shampoo, Superwater, and Fleece to completely wash away muscle pain and soreness. (Returns the Fleece).
+  - **Nutrition Regime (Nutrition Unit lvl 1):** Prepare a recovery meal with Hot Rod, Vitamins, Beef Stew, and Zibbo to accelerate muscle recovery by 6x (e.g. 24h reduced to 4h). (Returns the Zibbo).
+  - Configurable FIR requirements and rewards for both crafts.
+- **Client UI Enhancement (BepInEx):** Custom UI banners, clear action buttons ("TAKE SHOWER" / "START REGIME"), and informative tooltips in the Hideout craft menu so crafts are intuitive.
+- **Active Combat Recovery:** Clear muscle fatigue by eliminating a boss or securing 5+ PMC kills in a raid (confirmed by Therapist in-game mail).
+- **Consumable Item Resets:** Optionally consume designated items (like Kvass) in hideout to reset the gym instantly.
+
 ## Installation
 
-1. Download the release archive.
-2. Extract it into your SPT install so the folder ends up at `SPT/user/mods/FlexiGym/`.
-3. Start the server. The log prints a `[FlexiGym] Gym resets every ... min` line when it worked.
+1. Download the release archive `FlexiGym-<version>.zip`.
+2. Extract it into your SPT root installation folder:
+   - Server mod: `user/mods/FlexiGym/`
+   - Client mod: `BepInEx/plugins/FlexiGymClient.dll`
+3. Launch the SPT server and client.
 
-Requires **SPT 4.1.x**.
+Requires **SPT 4.1.x** and **BepInEx 5.x**.
 
 ## Configuration
 
@@ -24,8 +37,13 @@ reported in the server log; a file that cannot be parsed disables the mod instea
 |---|---|---|
 | `enabled` | `true` | Turn the mod off without uninstalling it. |
 | `gymResetMinutes` | `1440` | Minutes until the gym resets (1 - 10080). 1440 is vanilla (24 h). |
-| `resetItems` | `["5e8f3423fd7471236e6e3b64"]` | Item template ids; consuming one resets the gym immediately. Default is kvass. Empty list turns the feature off. |
-| `requireFoundInRaid` | `true` | Only found-in-raid items trigger the reset. |
+| `showerCraftEnabled` | `true` | Enable the Recovery Shower craft in Lavatory lvl 3. |
+| `showerRequireFir` | `true` | Require ingredients and reward FIR for Recovery Shower. |
+| `nutritionCraftEnabled` | `true` | Enable the Nutrition Regime craft in Nutrition Unit lvl 1. |
+| `nutritionRequireFir` | `true` | Require ingredients and reward FIR for Nutrition Regime. |
+| `nutritionRecoveryAccelerationFactor` | `6.0` | Factor by which Nutrition Regime reduces remaining muscle soreness. |
+| `resetItems` | `["5e8f3423fd7471236e6e3b64"]` | Item template ids; consuming one resets the gym immediately. Default is kvass. |
+| `requireFoundInRaid` | `true` | Only found-in-raid items trigger the consumable reset. |
 | `activeRecoveryEnabled` | `true` | Enable active gym recovery from intense raid combat. |
 | `bossKillResets` | `true` | Eliminating any boss clears muscle pain post-raid. |
 | `minPmcKillsForReset` | `5` | Minimum PMC kills required in a raid to trigger recovery (0 disables). |
@@ -59,7 +77,8 @@ Removing the mod leaves profiles 100% clean and vanilla-compatible.
 
 | Path | Contents |
 |---|---|
-| `src/FlexiGym/` | The mod: entry point, config, metadata, packaging script. |
+| `src/FlexiGym/` | Server mod: entry point, config, metadata, packaging script. |
+| `src/FlexiGym.Client/` | BepInEx client plugin: Hideout craft UI banners, buttons, and tooltips. |
 | `tests/FlexiGym.Tests/` | SPT-free test runner; compiles the pure-logic sources directly. |
 | `docs/` | Technical notes and Forge page text. |
 
@@ -94,7 +113,7 @@ bash src/FlexiGym/package.sh
 ```
 
 This runs the tests, builds Release and writes `src/FlexiGym/Package/FlexiGym-<version>.zip` containing
-`SPT_Runtime/user/mods/FlexiGym/...`.
+`BepInEx/plugins/FlexiGymClient.dll` and `SPT_Runtime/user/mods/FlexiGym/...`.
 
 ## License
 

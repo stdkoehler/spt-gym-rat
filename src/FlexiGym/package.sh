@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Runs the tests, builds the mod in Release and zips it as a ready-to-extract SPT_Runtime tree
-# (SPT_Runtime/user/mods/<ModName>/...), so a release can be extracted straight onto an SPT install.
+# Runs the tests, builds the mod in Release and zips it as a ready-to-extract release archive
+# with BepInEx/ and user/ at the root, so it can be extracted straight into an SPT root install.
 set -euo pipefail
 
-# Ensure dotnet is on PATH in Windows Git Bash environments.
-export PATH="/c/Program Files/dotnet:$PATH"
+# Ensure dotnet is on PATH in Windows Git Bash and WSL environments.
+export PATH="/c/Program Files/dotnet:/mnt/c/Program Files/dotnet:$PATH"
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
@@ -31,23 +31,30 @@ echo -e "${GREEN}All tests passed.${NC}"
 echo -e "${CYAN}==> Building ${MOD_NAME} (Release)...${NC}"
 dotnet build -c Release || fail "Release build failed. Packaging aborted."
 
+echo -e "${CYAN}==> Building ${MOD_NAME}.Client (Release)...${NC}"
+dotnet build ../FlexiGym.Client/FlexiGym.Client.csproj -c Release || fail "Client build failed. Packaging aborted."
+
 PACKAGE_DIR=Package
-STAGE_ROOT="${PACKAGE_DIR}/SPT_Runtime"
-STAGE_DIR="${STAGE_ROOT}/user/mods/${MOD_NAME}"
+STAGE_ROOT="${PACKAGE_DIR}/staging"
+STAGE_DIR="${STAGE_ROOT}/SPT_Runtime/user/mods/${MOD_NAME}"
+PLUGIN_STAGE_DIR="${STAGE_ROOT}/BepInEx/plugins"
 ARCHIVE="${PACKAGE_DIR}/${MOD_NAME}-${VERSION}.zip"
 
 echo -e "${CYAN}==> Creating release archive (${ARCHIVE})...${NC}"
-rm -rf "${STAGE_ROOT}"
+rm -rf "${STAGE_ROOT}" "${PACKAGE_DIR}/SPT_Runtime"
 mkdir -p "${STAGE_DIR}"
+mkdir -p "${PLUGIN_STAGE_DIR}"
 cp -r "bin/Release/${MOD_NAME}/." "${STAGE_DIR}/"
+cp "../FlexiGym.Client/bin/Release/FlexiGymClient.dll" "${PLUGIN_STAGE_DIR}/"
 
 rm -f "${ARCHIVE}"
 if command -v zip >/dev/null 2>&1; then
-    (cd "${PACKAGE_DIR}" && zip -rq "$(basename "${ARCHIVE}")" SPT_Runtime)
+    (cd "${STAGE_ROOT}" && zip -rq "../$(basename "${ARCHIVE}")" BepInEx SPT_Runtime)
 else
     # Git Bash does not always ship zip; fall back to PowerShell.
     powershell.exe -NoProfile -Command \
-        "Compress-Archive -Path '${PACKAGE_DIR}/SPT_Runtime' -DestinationPath '${ARCHIVE}' -Force"
+        "Compress-Archive -Path '${STAGE_ROOT}/BepInEx', '${STAGE_ROOT}/SPT_Runtime' -DestinationPath '${ARCHIVE}' -Force"
 fi
+rm -rf "${STAGE_ROOT}"
 
 echo -e "${GREEN}==> Packaged ${MOD_NAME} v${VERSION}: ${ARCHIVE}${NC}"
