@@ -403,8 +403,8 @@ public class FlexiGymMod(
             ]
         };
 
-        hideoutTable.Production.Recipes.Add(showerRecipe);
-        hideoutTable.Production.Recipes.Add(nutritionRecipe);
+        hideoutTable.Production.Recipes.Insert(0, nutritionRecipe);
+        hideoutTable.Production.Recipes.Insert(0, showerRecipe);
     }
 
     /// <summary>
