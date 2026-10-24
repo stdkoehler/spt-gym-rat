@@ -52,14 +52,21 @@ The live `HideoutTakeProduction` route in `HideoutItemEventRouter` is wrapped vi
 - The profile is committed to disk via `SaveServer.SaveProfileAsync`.
 
 ### Client-side UI enhancements (`FlexiGymClient.dll`)
-To solve the discovery and clarity problem of Hideout recovery crafts without touching profile items or modifying vanilla templates in the database:
+To solve the discovery and clarity problem of Hideout recovery crafts and vanilla health effect ambiguity:
 - `FlexiGymClient` is a lightweight BepInEx plugin running on the client via Harmony (`src/FlexiGym.Client/`).
-- It hooks `ProduceView.Show` and `ProduceView.UpdateButtonsActiveness`.
-- When rendering the Recovery Shower or Nutrition Regime recipes:
-  - Injects a styled card banner across the top: `[RECOVERY SHOWER] • Resets Workout Muscle Soreness` or `[NUTRITION REGIME] • Accelerates Muscle Recovery (6x faster)`.
-  - Replaces the generic `START` button label with `TAKE SHOWER` / `START REGIME` with detailed action tooltips.
-  - Updates the `GET ITEMS` button label to `TAKE SHOWER` / `FINISH REGIME`.
-  - Updates the result item tile caption to `SHOWER` (cyan) or `NUTRITION` (gold).
+- **Hideout Recovery Crafts UI (`ProduceViewPatch`, `ProductionPanelPatch`):**
+  - Hooks `ProduceView.Show` and `ProduceView.UpdateButtonsActiveness`.
+  - When rendering the Recovery Shower or Nutrition Regime recipes:
+    - Injects a styled card banner across the top: `[RECOVERY SHOWER] • Resets Workout Muscle Soreness` or `[NUTRITION REGIME] • Accelerates Muscle Recovery (6x faster)`.
+    - Replaces the generic `START` button label with `TAKE SHOWER` / `START REGIME` with detailed action tooltips.
+    - Updates the `GET ITEMS` button label to `TAKE SHOWER` / `FINISH REGIME`.
+    - Updates the result item tile caption to `SHOWER` (cyan) or `NUTRITION` (gold).
+  - Prioritizes recovery crafts at the top of the craft lists in the Lavatory and Nutrition Unit.
+- **Chest Muscle Pain Hover Tooltip (`BuffDescriptionPatch`, `TimeFormatUtil`):**
+  - Hooks `BuffDescription.TimeLeftApproximatelyDisplay` and `BuffDescription.TimeLeftDisplay`.
+  - Vanilla EFT groups durations between 1 hour and 24 hours into a single coarse bucket showing `"Less of a day left"` and only switches during the final hour.
+  - Intercepts muscle pain debuffs (`MildMusclePain`, `SevereMusclePain`) on the chest and formats the remaining duration into human-readable, precise time: e.g. `(14 hours 25 minutes left)`, `(1 hour left)`, or `(45 minutes left)`.
+  - Updates dynamically in real-time as the player hovers over the chest effect icon.
 - Packaged automatically into `BepInEx/plugins/FlexiGymClient.dll` alongside the server mod in `package.sh`.
 
 ### Compatibility & load order

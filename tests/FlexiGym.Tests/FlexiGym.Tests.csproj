@@ -10,5 +10,6 @@
     <!-- Compile pure-logic sources straight from the mod; no SPT dependency needed.
          Anything that touches SPT types (the *Mod.cs entry point) stays out of the tests. -->
     <Compile Include="../../src/FlexiGym/Config.cs" />
+    <Compile Include="../../src/FlexiGym.Client/TimeFormatUtil.cs" />
   </ItemGroup>
 </Project>

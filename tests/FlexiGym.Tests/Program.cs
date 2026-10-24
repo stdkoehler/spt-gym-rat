@@ -24,5 +24,9 @@ Console.WriteLine("Config:");
 var (cp, cf) = ConfigCheck.Run(configPath);
 pass += cp; fail += cf;
 
+Console.WriteLine("TimeFormat:");
+var (tp, tf) = TimeFormatCheck.Run();
+pass += tp; fail += tf;
+
 Console.WriteLine(fail == 0 ? $"\nALL {pass} CHECKS PASSED" : $"\n{fail} FAILED, {pass} passed");
 return fail == 0 ? 0 : 1;

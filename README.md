@@ -14,7 +14,9 @@ an item (kvass by default) in the hideout to reset it at once, and rewards high-
   - **Recovery Shower (Lavatory lvl 3):** Clean up with Shampoo, Superwater, and Fleece to completely wash away muscle pain and soreness. (Returns the Fleece).
   - **Nutrition Regime (Nutrition Unit lvl 1):** Prepare a recovery meal with Hot Rod, Vitamins, Beef Stew, and Zibbo to accelerate muscle recovery by 6x (e.g. 24h reduced to 4h). (Returns the Zibbo).
   - Configurable FIR requirements and rewards for both crafts.
-- **Client UI Enhancement (BepInEx):** Custom UI banners, clear action buttons ("TAKE SHOWER" / "START REGIME"), and informative tooltips in the Hideout craft menu so crafts are intuitive.
+- **Client UI Enhancement (BepInEx):**
+  - **Hideout Craft Visuals:** Custom UI banners, clear action buttons ("TAKE SHOWER" / "START REGIME"), and informative tooltips in the Hideout craft menu so crafts are intuitive.
+  - **Precise Muscle Pain Tooltips:** Replaces vanilla's vague `"Less of a day left"` hover text on chest muscle pain with exact remaining hours and minutes (e.g. `14 hours 25 minutes left`).
 - **Active Combat Recovery:** Clear muscle fatigue by eliminating a boss or securing 5+ PMC kills in a raid (confirmed by Therapist in-game mail).
 - **Consumable Item Resets:** Optionally consume designated items (like Kvass) in hideout to reset the gym instantly.
 
