@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <RootNamespace>FlexiGym</RootNamespace>
+    <RootNamespace>GymRat</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
-    <!-- Keep in sync with FlexiGymMetadata.cs; package.sh reads the version from the metadata file. -->
+    <!-- Keep in sync with GymRatMetadata.cs; package.sh reads the version from the metadata file. -->
     <Version>0.1.0</Version>
     <OutputPath>bin\$(Configuration)\$(AssemblyName)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

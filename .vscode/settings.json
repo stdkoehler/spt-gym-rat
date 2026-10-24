@@ -1,6 +1,6 @@
 {
   // --- Solution & Language Server Configuration ---
-  "dotnet.defaultSolution": "spt-flexi-gym.sln",
+  "dotnet.defaultSolution": "GymRat.sln",
   "omnisharp.enableEditorConfigSupport": true,
 
   // --- External Assembly Decompilation (F12 on SPTarkov Types) ---

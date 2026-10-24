@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/spt-flexi-gym.sln",
+        "${workspaceFolder}/GymRat.sln",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -20,7 +20,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/src/FlexiGym/FlexiGym.csproj",
+        "${workspaceFolder}/src/GymRat/GymRat.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -34,7 +34,7 @@
         "build",
         "-c",
         "Release",
-        "${workspaceFolder}/src/FlexiGym/FlexiGym.csproj",
+        "${workspaceFolder}/src/GymRat/GymRat.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -46,7 +46,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/tests/FlexiGym.Tests/FlexiGym.Tests.csproj",
+        "${workspaceFolder}/tests/GymRat.Tests/GymRat.Tests.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -57,21 +57,21 @@
       "command": "dotnet",
       "type": "process",
       "args": ["run"],
-      "options": { "cwd": "${workspaceFolder}/tests/FlexiGym.Tests" },
+      "options": { "cwd": "${workspaceFolder}/tests/GymRat.Tests" },
       "problemMatcher": "$msCompile"
     },
     {
       "label": "package-mod",
       "command": "bash",
       "type": "process",
-      "args": ["${workspaceFolder}/src/FlexiGym/package.sh"],
+      "args": ["${workspaceFolder}/src/GymRat/package.sh"],
       "problemMatcher": []
     },
     {
       "label": "clean",
       "command": "dotnet",
       "type": "process",
-      "args": ["clean", "${workspaceFolder}/spt-flexi-gym.sln"],
+      "args": ["clean", "${workspaceFolder}/GymRat.sln"],
       "problemMatcher": "$msCompile"
     }
   ]

@@ -1,4 +1,4 @@
-using FlexiGym.Tests;
+using GymRat.Tests;
 
 // Dependency-free test runner: exit code 0 = all checks passed. package.sh refuses to
 // build a release when this fails. Add one *Check class per area and call it here.
@@ -16,7 +16,7 @@ static string FindRepoRoot()
 }
 
 var repoRoot = FindRepoRoot();
-var configPath = Path.Combine(repoRoot, "src", "FlexiGym", "config.jsonc");
+var configPath = Path.Combine(repoRoot, "src", "GymRat", "config.jsonc");
 
 int pass = 0, fail = 0;
 

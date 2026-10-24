@@ -27,7 +27,7 @@ using SPTarkov.Server.Core.Services.Commerce;
 using SPTarkov.Server.Core.Utils;
 using BotBaseHealth = SPTarkov.Server.Core.Models.Eft.Common.Tables.BotBaseHealth;
 
-namespace FlexiGym;
+namespace GymRat;
 
 /// <summary>
 /// The gym "reset" is the muscle pain applied when a workout finishes; its duration comes from
@@ -42,8 +42,8 @@ namespace FlexiGym;
 /// A broken config disables the mod instead of crashing the server.
 /// </summary>
 [Injectable(InjectionType.Singleton, TypePriority = OnLoadOrder.PostLoad)]
-public class FlexiGymMod(
-    ISptLogger<FlexiGymMod> logger,
+public class GymRatMod(
+    ISptLogger<GymRatMod> logger,
     ModHelper modHelper,
     HideoutTable hideoutTable,
     ItemEventCallbacks itemEventCallbacks,
@@ -56,7 +56,7 @@ public class FlexiGymMod(
     public static readonly MongoId ShowerRecipeId = new("66f1e8100000000000000001");
     public static readonly MongoId NutritionRecipeId = new("66f1e8100000000000000002");
 
-    private const string Tag = "[FlexiGym]";
+    private const string Tag = "[GymRat]";
     private const BindingFlags Fields = BindingFlags.NonPublic | BindingFlags.Instance;
 
     private string ModFolder => modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());

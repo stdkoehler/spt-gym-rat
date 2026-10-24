@@ -1,13 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace FlexiGym;
+namespace GymRat;
 
 /// <summary>
 /// Player-facing settings. Mirrors config.jsonc; keep the two in sync and keep every
 /// default here identical to the value shipped in the file.
 ///
-/// This file deliberately has no SPT dependency so tests/FlexiGym.Tests can compile it directly.
+/// This file deliberately has no SPT dependency so tests/GymRat.Tests can compile it directly.
 /// </summary>
 public class Config
 {

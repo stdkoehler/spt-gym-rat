@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <RootNamespace>FlexiGym.Client</RootNamespace>
-    <AssemblyName>FlexiGymClient</AssemblyName>
+    <RootNamespace>GymRat.Client</RootNamespace>
+    <AssemblyName>GymRatClient</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>

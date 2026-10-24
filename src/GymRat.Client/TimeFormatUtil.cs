@@ -1,6 +1,6 @@
 using System;
 
-namespace FlexiGym.Client;
+namespace GymRat.Client;
 
 public static class TimeFormatUtil
 {

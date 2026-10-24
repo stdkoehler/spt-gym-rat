@@ -6,12 +6,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace FlexiGym.Client;
+namespace GymRat.Client;
 
 /// <summary>
-/// Marker component to identify ProduceView instances modified by FlexiGym.
+/// Marker component to identify ProduceView instances modified by GymRat.
 /// </summary>
-public class FlexiGymLayoutMarker : MonoBehaviour { }
+public class GymRatLayoutMarker : MonoBehaviour { }
 
 [HarmonyPatch(typeof(ProduceView))]
 public static class ProduceViewPatch
@@ -45,16 +45,16 @@ public static class ProduceViewPatch
             bool isShower = schemeId == ShowerRecipeId;
             bool isNutrition = schemeId == NutritionRecipeId;
 
-            var banner = view.transform.Find("FlexiGymBanner");
+            var banner = view.transform.Find("GymRatBanner");
 
             // CRITICAL: Vanilla crafts must NEVER be touched or compressed.
             if (!isShower && !isNutrition)
             {
                 if (banner != null) banner.gameObject.SetActive(false);
 
-                // If this view instance was previously customized for a FlexiGym craft and recycled,
+                // If this view instance was previously customized for a GymRat craft and recycled,
                 // completely revert it back to vanilla state (remove LayoutElement & reset padding).
-                var marker = view.GetComponent<FlexiGymLayoutMarker>();
+                var marker = view.GetComponent<GymRatLayoutMarker>();
                 if (marker != null)
                 {
                     var le = view.GetComponent<LayoutElement>();
@@ -71,12 +71,12 @@ public static class ProduceViewPatch
                 return;
             }
 
-            // --- FlexiGym Crafts (Recovery Shower & Nutrition Regime) Only ---
+            // --- GymRat Crafts (Recovery Shower & Nutrition Regime) Only ---
 
-            // Mark this view as customized by FlexiGym
-            if (view.GetComponent<FlexiGymLayoutMarker>() == null)
+            // Mark this view as customized by GymRat
+            if (view.GetComponent<GymRatLayoutMarker>() == null)
             {
-                view.gameObject.AddComponent<FlexiGymLayoutMarker>();
+                view.gameObject.AddComponent<GymRatLayoutMarker>();
             }
 
             var viewRect = view.GetComponent<RectTransform>();
@@ -88,7 +88,7 @@ public static class ProduceViewPatch
                 foreach (Transform sibling in view.transform.parent)
                 {
                     if (sibling != view.transform
-                        && sibling.GetComponent<FlexiGymLayoutMarker>() == null
+                        && sibling.GetComponent<GymRatLayoutMarker>() == null
                         && sibling is RectTransform sr
                         && sr.rect.height > 90f)
                     {
@@ -129,7 +129,7 @@ public static class ProduceViewPatch
             TextMeshProUGUI? bannerText = null;
             if (banner == null)
             {
-                var bannerGo = new GameObject("FlexiGymBanner");
+                var bannerGo = new GameObject("GymRatBanner");
                 bannerGo.transform.SetParent(view.transform, false);
 
                 // Ignore parent layout so the banner doesn't become a horizontal column
@@ -209,7 +209,7 @@ public static class ProduceViewPatch
         }
         catch (Exception ex)
         {
-            Plugin.Log?.LogError($"[FlexiGym] Error customizing ProduceView: {ex}");
+            Plugin.Log?.LogError($"[GymRat] Error customizing ProduceView: {ex}");
         }
     }
 }

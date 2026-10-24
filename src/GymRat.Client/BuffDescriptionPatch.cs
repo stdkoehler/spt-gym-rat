@@ -2,7 +2,7 @@ using System;
 using EFT.HealthSystem;
 using HarmonyLib;
 
-namespace FlexiGym.Client;
+namespace GymRat.Client;
 
 [HarmonyPatch(typeof(BuffDescription))]
 public static class BuffDescriptionPatch
@@ -21,7 +21,7 @@ public static class BuffDescriptionPatch
         }
         catch (Exception ex)
         {
-            Plugin.Log?.LogError($"[FlexiGym] Error in BuffDescription.TimeLeftApproximatelyDisplay prefix: {ex}");
+            Plugin.Log?.LogError($"[GymRat] Error in BuffDescription.TimeLeftApproximatelyDisplay prefix: {ex}");
         }
         return true;
     }
@@ -40,7 +40,7 @@ public static class BuffDescriptionPatch
         }
         catch (Exception ex)
         {
-            Plugin.Log?.LogError($"[FlexiGym] Error in BuffDescription.TimeLeftDisplay prefix: {ex}");
+            Plugin.Log?.LogError($"[GymRat] Error in BuffDescription.TimeLeftDisplay prefix: {ex}");
         }
         return true;
     }

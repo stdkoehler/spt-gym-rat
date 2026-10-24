@@ -2,9 +2,9 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 
-namespace FlexiGym.Client;
+namespace GymRat.Client;
 
-[BepInPlugin("com.spt.flexigym", "FlexiGym", "0.1.0")]
+[BepInPlugin("com.spt.gymrat", "GymRat", "0.1.0")]
 public class Plugin : BaseUnityPlugin
 {
     public static ManualLogSource Log { get; private set; } = null!;
@@ -12,7 +12,7 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = Logger;
-        new Harmony("com.spt.flexigym").PatchAll();
-        Log.LogInfo("FlexiGym client plugin initialized.");
+        new Harmony("com.spt.gymrat").PatchAll();
+        Log.LogInfo("GymRat client plugin initialized.");
     }
 }

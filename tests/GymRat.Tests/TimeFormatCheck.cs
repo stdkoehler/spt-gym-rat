@@ -1,6 +1,6 @@
-using FlexiGym.Client;
+using GymRat.Client;
 
-namespace FlexiGym.Tests;
+namespace GymRat.Tests;
 
 public static class TimeFormatCheck
 {

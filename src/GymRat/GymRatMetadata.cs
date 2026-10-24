@@ -1,12 +1,12 @@
 using SPTarkov.Server.Core.Models.Spt.Mod;
 
-namespace FlexiGym;
+namespace GymRat;
 
-public record FlexiGymMetadata : IModMetadata
+public record GymRatMetadata : IModMetadata
 {
     // Must be globally unique and never change after the first release.
-    public string ModGuid { get; init; } = "com.styrr.flexigym";
-    public string Name { get; init; } = "Flexi Gym";
+    public string ModGuid { get; init; } = "com.styrr.gymrat";
+    public string Name { get; init; } = "GymRat";
     public string Author { get; init; } = "Styrr";
     public List<string>? Contributors { get; init; }
     // Bump before running package.sh - the archive name is taken from this line.

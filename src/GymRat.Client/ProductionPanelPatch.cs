@@ -4,7 +4,7 @@ using System.Linq;
 using EFT.Hideout;
 using HarmonyLib;
 
-namespace FlexiGym.Client;
+namespace GymRat.Client;
 
 [HarmonyPatch(typeof(ProductionPanel))]
 public static class ProductionPanelPatch
@@ -17,17 +17,17 @@ public static class ProductionPanelPatch
         {
             if (__result == null) return;
 
-            // Ensure FlexiGym recovery crafts are always prioritized at the top of the craft list
+            // Ensure GymRat recovery crafts are always prioritized at the top of the craft list
             __result = __result.OrderBy(scheme =>
             {
-                bool isFlexiGymCraft = scheme._id == ProduceViewPatch.ShowerRecipeId
+                bool isGymRatCraft = scheme._id == ProduceViewPatch.ShowerRecipeId
                                     || scheme._id == ProduceViewPatch.NutritionRecipeId;
-                return isFlexiGymCraft ? 0 : 1;
+                return isGymRatCraft ? 0 : 1;
             });
         }
         catch (Exception ex)
         {
-            Plugin.Log?.LogError($"[FlexiGym] Error sorting production schemes: {ex}");
+            Plugin.Log?.LogError($"[GymRat] Error sorting production schemes: {ex}");
         }
     }
 }

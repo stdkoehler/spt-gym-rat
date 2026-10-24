@@ -1,4 +1,4 @@
-namespace FlexiGym.Tests;
+namespace GymRat.Tests;
 
 /// <summary>
 /// Guards the contract between config.jsonc and Config.cs: the shipped file must parse

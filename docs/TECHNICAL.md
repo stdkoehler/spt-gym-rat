@@ -51,9 +51,9 @@ The live `HideoutTakeProduction` route in `HideoutItemEventRouter` is wrapped vi
 - The real-time health state is synchronized into `output.ProfileChanges[sessionId].Health` so the client UI updates immediately without needing to exit the hideout or wait for health polling.
 - The profile is committed to disk via `SaveServer.SaveProfileAsync`.
 
-### Client-side UI enhancements (`FlexiGymClient.dll`)
+### Client-side UI enhancements (`GymRatClient.dll`)
 To solve the discovery and clarity problem of Hideout recovery crafts and vanilla health effect ambiguity:
-- `FlexiGymClient` is a lightweight BepInEx plugin running on the client via Harmony (`src/FlexiGym.Client/`).
+- `GymRatClient` is a lightweight BepInEx plugin running on the client via Harmony (`src/GymRat.Client/`).
 - **Hideout Recovery Crafts UI (`ProduceViewPatch`, `ProductionPanelPatch`):**
   - Hooks `ProduceView.Show` and `ProduceView.UpdateButtonsActiveness`.
   - When rendering the Recovery Shower or Nutrition Regime recipes:
@@ -67,12 +67,12 @@ To solve the discovery and clarity problem of Hideout recovery crafts and vanill
   - Vanilla EFT groups durations between 1 hour and 24 hours into a single coarse bucket showing `"Less of a day left"` and only switches during the final hour.
   - Intercepts muscle pain debuffs (`MildMusclePain`, `SevereMusclePain`) on the chest and formats the remaining duration into human-readable, precise time: e.g. `(14 hours 25 minutes left)`, `(1 hour left)`, or `(45 minutes left)`.
   - Updates dynamically in real-time as the player hovers over the chest effect icon.
-- Packaged automatically into `BepInEx/plugins/FlexiGymClient.dll` alongside the server mod in `package.sh`.
+- Packaged automatically into `BepInEx/plugins/GymRatClient.dll` alongside the server mod in `package.sh`.
 
 ### Compatibility & load order
-Any mod modifying gym reset times (such as Server Value Modifier / SVM via `Hideout.MusclePainTime`) writes to the same `HideoutTable.Qte` template values. Whichever mod runs its `OnLoad` last sets the effective passive timer duration. Flexi Gym's item consumption hook (`HookEatRoute`), active recovery hook (`HookRaidEnd`), and hideout craft hook (`HookTakeProductionRoute`) are completely decoupled from this and continue to operate regardless of load order.
+Any mod modifying gym reset times (such as Server Value Modifier / SVM via `Hideout.MusclePainTime`) writes to the same `HideoutTable.Qte` template values. Whichever mod runs its `OnLoad` last sets the effective passive timer duration. GymRat's item consumption hook (`HookEatRoute`), active recovery hook (`HookRaidEnd`), and hideout craft hook (`HookTakeProductionRoute`) are completely decoupled from this and continue to operate regardless of load order.
 
-For players who only wish to adjust the passive cooldown and already use SVM, SVM serves as an alternative without needing Flexi Gym. Flexi Gym differentiates itself through:
+For players who only wish to adjust the passive cooldown and already use SVM, SVM serves as an alternative without needing GymRat. GymRat differentiates itself through:
 - In-hideout FIR crafting recipes (Recovery Shower in Lavatory and Nutrition Regime in Nutrition Unit).
 - Active recovery earned through boss kills or high PMC kill raids with lore-friendly in-game notification.
 - Dynamic item-based resets in hideout (with FIR filtering).
@@ -85,6 +85,6 @@ For players who only wish to adjust the passive cooldown and already use SVM, SV
 
 ## 4. Testing
 
-`tests/FlexiGym.Tests` covers config parsing, defaults and clamping. The table patch, hideout recipes, and router hooks can only be
-verified in a running server: check the `[FlexiGym]` log line and train in the gym.
+`tests/GymRat.Tests` covers config parsing, defaults and clamping. The table patch, hideout recipes, and router hooks can only be
+verified in a running server: check the `[GymRat]` log line and train in the gym.
 

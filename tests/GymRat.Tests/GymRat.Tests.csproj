@@ -4,12 +4,12 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>FlexiGym.Tests</RootNamespace>
+    <RootNamespace>GymRat.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <!-- Compile pure-logic sources straight from the mod; no SPT dependency needed.
          Anything that touches SPT types (the *Mod.cs entry point) stays out of the tests. -->
-    <Compile Include="../../src/FlexiGym/Config.cs" />
-    <Compile Include="../../src/FlexiGym.Client/TimeFormatUtil.cs" />
+    <Compile Include="../../src/GymRat/Config.cs" />
+    <Compile Include="../../src/GymRat.Client/TimeFormatUtil.cs" />
   </ItemGroup>
 </Project>

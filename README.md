@@ -1,8 +1,8 @@
-# Flexi Gym
+# GymRat
 
 **Set how long the gym takes to reset, in minutes, and reset it early via items or raid combat.**
 
-By default the gym "resets" 24 hours after a workout (the muscle pain wears off). Flexi Gym lets you
+By default the gym "resets" 24 hours after a workout (the muscle pain wears off). GymRat lets you
 pick any time from 1 minute to one week in `config.jsonc`, optionally lets the player consume
 an item (kvass by default) in the hideout to reset it at once, and rewards high-intensity raids with
 **Active Recovery** (eliminating a boss or achieving >= 5 PMC kills clears muscle fatigue, confirmed by a message from Therapist).
@@ -22,17 +22,17 @@ an item (kvass by default) in the hideout to reset it at once, and rewards high-
 
 ## Installation
 
-1. Download the release archive `FlexiGym-<version>.zip`.
+1. Download the release archive `GymRat-<version>.zip`.
 2. Extract it into your SPT root installation folder:
-   - Server mod: `user/mods/FlexiGym/`
-   - Client mod: `BepInEx/plugins/FlexiGymClient.dll`
+   - Server mod: `user/mods/GymRat/`
+   - Client mod: `BepInEx/plugins/GymRatClient.dll`
 3. Launch the SPT server and client.
 
 Requires **SPT 4.1.x** and **BepInEx 5.x**.
 
 ## Configuration
 
-Edit `user/mods/FlexiGym/config.jsonc` (comments are allowed). Out-of-range values are clamped and
+Edit `user/mods/GymRat/config.jsonc` (comments are allowed). Out-of-range values are clamped and
 reported in the server log; a file that cannot be parsed disables the mod instead of crashing the server.
 
 | Setting | Default | Meaning |
@@ -55,12 +55,12 @@ reported in the server log; a file that cannot be parsed disables the mod instea
 ## Compatibility & Alternatives
 
 - **Other mods changing reset time:** Any mod that modifies the gym workout reset duration modifies the same underlying `MusclePain` reward effect in `HideoutTable.Qte`. If multiple mods change this value, whichever mod loads last during SPT server startup will take precedence for the passive cooldown timer.
-- **Server Value Modifier (SVM) as an alternative:** If you already use [Server Value Modifier (SVM)](https://github.com/GhostFenixx/svm-csharp) and *only* want to customize the passive reset timer, SVM already has this built-in under **Hideout > Muscle pain duration in minutes** (`5` to `7200` minutes). You do not need Flexi Gym unless you also want:
+- **Server Value Modifier (SVM) as an alternative:** If you already use [Server Value Modifier (SVM)](https://github.com/GhostFenixx/svm-csharp) and *only* want to customize the passive reset timer, SVM already has this built-in under **Hideout > Muscle pain duration in minutes** (`5` to `7200` minutes). You do not need GymRat unless you also want:
   - Active recovery from intense raid combat (boss kills or >= 5 PMC kills with Therapist in-game notification).
   - Instant cooldown resets by consuming items (e.g. kvass, energy drinks, stims).
   - Found-in-raid restrictions on reset items.
   - Reset intervals shorter than SVM's 5-minute slider minimum (down to 1 minute).
-- **Using both together:** If you run both Flexi Gym and SVM (or another mod), Flexi Gym's item-reset and active recovery features continue to work normally regardless of load order. Only the passive timer duration will be determined by whichever mod executed last.
+- **Using both together:** If you run both GymRat and SVM (or another mod), GymRat's item-reset and active recovery features continue to work normally regardless of load order. Only the passive timer duration will be determined by whichever mod executed last.
 
 ## Is it safe to add to an existing profile?
 
@@ -79,9 +79,9 @@ Removing the mod leaves profiles 100% clean and vanilla-compatible.
 
 | Path | Contents |
 |---|---|
-| `src/FlexiGym/` | Server mod: entry point, config, metadata, packaging script. |
-| `src/FlexiGym.Client/` | BepInEx client plugin: Hideout craft UI banners, buttons, and tooltips. |
-| `tests/FlexiGym.Tests/` | SPT-free test runner; compiles the pure-logic sources directly. |
+| `src/GymRat/` | Server mod: entry point, config, metadata, packaging script. |
+| `src/GymRat.Client/` | BepInEx client plugin: Hideout craft UI banners, buttons, and tooltips. |
+| `tests/GymRat.Tests/` | SPT-free test runner; compiles the pure-logic sources directly. |
 | `docs/` | Technical notes and Forge page text. |
 
 ## Development
@@ -94,28 +94,28 @@ Removing the mod leaves profiles 100% clean and vanilla-compatible.
 ### Build
 
 ```bash
-dotnet build spt-flexi-gym.sln
+dotnet build GymRat.sln
 ```
 
-Release output lands in `src/FlexiGym/bin/Release/FlexiGym/`; copy that folder into `SPT/user/mods/`.
+Release output lands in `src/GymRat/bin/Release/GymRat/`; copy that folder into `SPT/user/mods/`.
 
 ### Test
 
 ```bash
-cd tests/FlexiGym.Tests
+cd tests/GymRat.Tests
 dotnet run
 ```
 
 ### Package a release
 
-Bump the version in `src/FlexiGym/FlexiGymMetadata.cs` , update `docs/forge/changelog.md`, then:
+Bump the version in `src/GymRat/GymRatMetadata.cs` , update `docs/forge/changelog.md`, then:
 
 ```bash
-bash src/FlexiGym/package.sh
+bash src/GymRat/package.sh
 ```
 
-This runs the tests, builds Release and writes `src/FlexiGym/Package/FlexiGym-<version>.zip` containing
-`BepInEx/plugins/FlexiGymClient.dll` and `SPT_Runtime/user/mods/FlexiGym/...`.
+This runs the tests, builds Release and writes `src/GymRat/Package/GymRat-<version>.zip` containing
+`BepInEx/plugins/GymRatClient.dll` and `SPT_Runtime/user/mods/GymRat/...`.
 
 ## License
 

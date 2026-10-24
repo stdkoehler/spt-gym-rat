@@ -16,8 +16,8 @@ fi
 
 fail() { echo -e "${RED}ERROR: $*${NC}" >&2; exit 1; }
 
-MOD_NAME=FlexiGym
-TEST_DIR="../../tests/FlexiGym.Tests"
+MOD_NAME=GymRat
+TEST_DIR="../../tests/GymRat.Tests"
 VERSION=$(sed -n 's/.*SemanticVersioning\.Version Version { get; init; } = new("\(.*\)").*/\1/p' "${MOD_NAME}Metadata.cs")
 [ -n "$VERSION" ] || fail "Could not read version from ${MOD_NAME}Metadata.cs"
 
@@ -32,7 +32,7 @@ echo -e "${CYAN}==> Building ${MOD_NAME} (Release)...${NC}"
 dotnet build -c Release || fail "Release build failed. Packaging aborted."
 
 echo -e "${CYAN}==> Building ${MOD_NAME}.Client (Release)...${NC}"
-dotnet build ../FlexiGym.Client/FlexiGym.Client.csproj -c Release || fail "Client build failed. Packaging aborted."
+dotnet build ../GymRat.Client/GymRat.Client.csproj -c Release || fail "Client build failed. Packaging aborted."
 
 PACKAGE_DIR=Package
 STAGE_ROOT="${PACKAGE_DIR}/staging"
@@ -45,7 +45,7 @@ rm -rf "${STAGE_ROOT}" "${PACKAGE_DIR}/SPT_Runtime"
 mkdir -p "${STAGE_DIR}"
 mkdir -p "${PLUGIN_STAGE_DIR}"
 cp -r "bin/Release/${MOD_NAME}/." "${STAGE_DIR}/"
-cp "../FlexiGym.Client/bin/Release/FlexiGymClient.dll" "${PLUGIN_STAGE_DIR}/"
+cp "../GymRat.Client/bin/Release/GymRatClient.dll" "${PLUGIN_STAGE_DIR}/"
 
 rm -f "${ARCHIVE}"
 if command -v zip >/dev/null 2>&1; then

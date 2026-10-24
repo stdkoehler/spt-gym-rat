@@ -6,9 +6,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-test",
-      "program": "${workspaceFolder}/tests/FlexiGym.Tests/bin/Debug/net10.0/FlexiGym.Tests.dll",
+      "program": "${workspaceFolder}/tests/GymRat.Tests/bin/Debug/net10.0/GymRat.Tests.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/tests/FlexiGym.Tests",
+      "cwd": "${workspaceFolder}/tests/GymRat.Tests",
       "console": "internalConsole",
       "stopAtEntry": false
     },
