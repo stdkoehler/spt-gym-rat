@@ -51,9 +51,17 @@ The live `HideoutTakeProduction` route in `HideoutItemEventRouter` is wrapped vi
 - The real-time health state is synchronized into `output.ProfileChanges[sessionId].Health` so the client UI updates immediately without needing to exit the hideout or wait for health polling.
 - The profile is committed to disk via `SaveServer.SaveProfileAsync`.
 
-### Client-side UI enhancements (`GymRatClient.dll`)
-To solve the discovery and clarity problem of Hideout recovery crafts and vanilla health effect ambiguity:
+### Client-side UI enhancements & health synchronization (`GymRatClient.dll`)
+To solve the discovery, clarity, and client-side health synchronization challenges of hideout crafts and vanilla health effect ambiguity:
 - `GymRatClient` is a lightweight BepInEx plugin running on the client via Harmony (`src/GymRat.Client/`).
+- **Real-Time Client Health Synchronization (`OfflineHealthControllerPatch`, `RecoveryHelper`):**
+  - **The Vanilla Limitation:** In EFT's client architecture, `/client/game/profile/items/moving` responses are processed by `EFT.ProfileUpdatesHandler.UpdateProfile(ProfileChanges changes)`. Vanilla `ProfileChanges` lacks any mapping for `Health`. Consequently, changes written by the SPT server into `output.ProfileChanges[sessionId].Health` are completely ignored by the client's running `OfflineHealthController` in the hideout. While raid extraction reconstructs a fresh health controller from `/client/game/profile/list`, in-hideout actions (eating, craft completion) would leave the client-side buff timers frozen on screen.
+  - **The Solution:** `OfflineHealthControllerPatch` maintains a reference to the active `OfflineHealthController` instance. `RecoveryHelper` interacts directly with this controller on the Unity main thread:
+    - **Shower Reset (`ClearMusclePain`):** Locates active `MildMusclePain` or `SevereMusclePain` effects and removes them via `ActiveEffects.RemoveEffect()`, dropping the debuff icon immediately.
+    - **Nutrition Regime Acceleration (`ReduceMusclePain`):** Reads the live remaining duration (`OverallDuration - WholeTime`), calculates `newTime = Mathf.Round(remaining / factor)` (default 6.0x faster), removes the old effect, and calls `OfflineHealthController.CreateMusclePain<T>(newTime)`. This triggers native EFT `EffectAddedEvent` and `EffectStartedEvent`, immediately updating the health paperdoll and hover tooltip in real time.
+    - **Action Debounce:** Uses a 2.0-second cooldown timestamp to prevent duplicate executions from redundant UI/event triggers.
+  - **Item Consumption Hook:** `OfflineHealthController.ApplyItem` is intercepted to immediately clear muscle pain when a configured reset item (e.g., Norvinsky kvass) is consumed in the hideout.
+  - **Craft Collection Hooks (`HideoutRepresentationPatch`, `ProductionPanelPatch`):** Intercepts craft collection (`GetProducedItems`) for the Recovery Shower and Nutrition Regime schemes and dispatches the corresponding health update to the main thread via `Plugin.RunOnMainThread()`.
 - **Hideout Recovery Crafts UI (`ProduceViewPatch`, `ProductionPanelPatch`):**
   - Hooks `ProduceView.Show` and `ProduceView.UpdateButtonsActiveness`.
   - When rendering the Recovery Shower or Nutrition Regime recipes:

@@ -563,6 +563,10 @@ public class GymRatMod(
                 }
             }
         }
+        if (health is not null)
+        {
+            health.UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
     }
 
     private static void SyncHealthChanges(ItemEventRouterResponse response, MongoId sessionId, PmcData pmcData)
@@ -598,6 +602,10 @@ public class GymRatMod(
         var effects = health?.BodyParts?.GetValueOrDefault("Chest")?.Effects;
         effects?.Remove("MildMusclePain");
         effects?.Remove("SevereMusclePain");
+        if (health is not null)
+        {
+            health.UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
     }
 }
 

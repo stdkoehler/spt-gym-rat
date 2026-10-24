@@ -30,4 +30,19 @@ public static class ProductionPanelPatch
             Plugin.Log?.LogError($"[GymRat] Error sorting production schemes: {ex}");
         }
     }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(nameof(ProductionPanel.GetProducedItems))]
+    public static void Postfix_GetProducedItems(string schemeId)
+    {
+        try
+        {
+            RecoveryHelper.HandleCraftTaken(schemeId, Plugin.NutritionReductionFactor.Value);
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log?.LogError($"[GymRat] Error handling craft take in ProductionPanel: {ex}");
+        }
+    }
 }
+

@@ -5,6 +5,9 @@ set -euo pipefail
 
 # Ensure dotnet is on PATH in Windows Git Bash and WSL environments.
 export PATH="/c/Program Files/dotnet:/mnt/c/Program Files/dotnet:$PATH"
+if ! command -v dotnet >/dev/null 2>&1 && command -v dotnet.exe >/dev/null 2>&1; then
+    dotnet() { dotnet.exe "$@"; }
+fi
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
