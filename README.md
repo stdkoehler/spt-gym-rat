@@ -3,22 +3,22 @@
 **Set how long the gym takes to reset, in minutes, and reset it early via items or raid combat.**
 
 By default the gym "resets" 24 hours after a workout (the muscle pain wears off). GymRat lets you
-pick any time from 1 minute to one week in `config.jsonc`, optionally lets the player consume
-an item (kvass by default) in the hideout to reset it at once, and rewards high-intensity raids with
-**Active Recovery** (eliminating a boss or achieving >= 5 PMC kills clears muscle fatigue, confirmed by a message from Therapist).
+pick any time from 1 minute to one week in `config.jsonc`, prepares custom recovery crafts in the Hideout,
+rewards high-intensity raids with **Active Recovery** (eliminating a boss or achieving >= 5 PMC kills clears muscle fatigue,
+confirmed by Therapist in-game mail), and replaces vague health buff text with exact remaining hours and minutes.
 
 ## Features
 
 - **Custom Passive Gym Timer:** Configure gym reset interval anywhere from 1 minute to 1 week (vanilla default: 24h).
+- **Precise Muscle Pain Tooltips (BepInEx Client):** Replaces vanilla's blurry `"Less of a day left"` hover text on chest muscle pain with exact remaining hours and minutes (e.g. `Severe muscle pain (14 hours 25 minutes left)`).
 - **Hideout Recovery Crafts:**
-  - **Recovery Shower (Lavatory lvl 3):** Clean up with Shampoo, Superwater, and Fleece to completely wash away muscle pain and soreness. (Returns the Fleece).
-  - **Nutrition Regime (Nutrition Unit lvl 1):** Prepare a recovery meal with Hot Rod, Vitamins, Beef Stew, and Zibbo to accelerate muscle recovery by 6x (e.g. 24h reduced to 4h). (Returns the Zibbo).
-  - Configurable FIR requirements and rewards for both crafts.
-- **Client UI Enhancement (BepInEx):**
-  - **Hideout Craft Visuals:** Custom UI banners, clear action buttons ("TAKE SHOWER" / "START REGIME"), and informative tooltips in the Hideout craft menu so crafts are intuitive.
-  - **Precise Muscle Pain Tooltips:** Replaces vanilla's vague `"Less of a day left"` hover text on chest muscle pain with exact remaining hours and minutes (e.g. `14 hours 25 minutes left`).
+  - **Recovery Shower (Lavatory lvl 3):** Clean up with Soap, Shampoo, Superwater, and Fleece to completely wash away muscle pain and soreness. (Returns the Fleece towel).
+  - **Nutrition Regime (Nutrition Unit lvl 1):** Prepare a recovery meal with Hot Rod, Vitamins, Beef Stew, and Zibbo to accelerate muscle recovery by 6x (e.g. 24h reduced to 4h). (Returns the Zibbo lighter).
+  - Configurable FIR requirements, station levels, craft times, and ingredients.
+- **Client UI Enhancement (BepInEx Client):**
+  - **Hideout Craft Visuals:** Custom UI headers, clear action buttons ("TAKE SHOWER" / "START REGIME"), and informative tooltips in the Hideout craft menu.
 - **Active Combat Recovery:** Clear muscle fatigue by eliminating a boss or securing 5+ PMC kills in a raid (confirmed by Therapist in-game mail).
-- **Consumable Item Resets:** Optionally consume designated items (like Kvass) in hideout to reset the gym instantly.
+- **Optional Consumable Food Resets:** Optionally configure food or drink items (like Norvinsky Kvass) to reset muscle pain immediately upon consumption in the hideout (disabled by default).
 
 ## Installation
 
@@ -35,32 +35,41 @@ Requires **SPT 4.1.x** and **BepInEx 5.x**.
 Edit `user/mods/GymRat/config.jsonc` (comments are allowed). Out-of-range values are clamped and
 reported in the server log; a file that cannot be parsed disables the mod instead of crashing the server.
 
-| Setting | Default | Meaning |
-|---|---|---|
-| `enabled` | `true` | Turn the mod off without uninstalling it. |
-| `gymResetMinutes` | `1440` | Minutes until the gym resets (1 - 10080). 1440 is vanilla (24 h). |
-| `showerCraftEnabled` | `true` | Enable the Recovery Shower craft in Lavatory lvl 3. |
-| `showerRequireFir` | `true` | Require ingredients and reward FIR for Recovery Shower. |
-| `nutritionCraftEnabled` | `true` | Enable the Nutrition Regime craft in Nutrition Unit lvl 1. |
-| `nutritionRequireFir` | `true` | Require ingredients and reward FIR for Nutrition Regime. |
-| `nutritionRecoveryAccelerationFactor` | `6.0` | Factor by which Nutrition Regime reduces remaining muscle soreness. |
-| `resetItems` | `["5e8f3423fd7471236e6e3b64"]` | Item template ids; consuming one resets the gym immediately. Default is kvass. |
-| `requireFoundInRaid` | `true` | Only found-in-raid items trigger the consumable reset. |
-| `activeRecoveryEnabled` | `true` | Enable active gym recovery from intense raid combat. |
-| `bossKillResets` | `true` | Eliminating any boss clears muscle pain post-raid. |
-| `minPmcKillsForReset` | `5` | Minimum PMC kills required in a raid to trigger recovery (0 disables). |
-| `requireSurviveForActiveRecovery` | `true` | Player must survive or transit from the raid to earn active recovery. |
-| `notifyOnActiveRecovery` | `true` | Receive an in-game message from Therapist when active recovery triggers. |
+| Setting | Default | Range | Meaning |
+|---|---|---|---|
+| `enabled` | `true` | `true` / `false` | Turn the mod off without uninstalling it. |
+| `gymResetMinutes` | `1440` | `1` – `10080` | Minutes until the gym resets naturally (1440 = 24 h). |
+| `hideoutCraftsEnabled` | `true` | `true` / `false` | Enable Hideout recovery crafts (Shower & Nutrition). |
+| `showerCraftMinutes` | `30` | `1` – `10080` | Craft time in minutes for the Recovery Shower. |
+| `showerLavatoryLevel` | `3` | `1` – `3` | Required Lavatory station level for the shower craft. |
+| `showerRequireFir` | `true` | `true` / `false` | Require ingredients and reward FIR for Recovery Shower. |
+| `showerIngredients` | Soap, Shampoo, Superwater, Fleece | List of IDs | Item template IDs consumed by the shower (1 each). |
+| `showerEndProduct` | Fleece (`5e2af477...`) | 24-char Hex ID | Item returned upon shower completion (preserves towel). |
+| `nutritionCraftMinutes` | `15` | `1` – `10080` | Craft time in minutes for the Nutrition Regime. |
+| `nutritionUnitLevel` | `1` | `1` – `3` | Required Nutrition Unit station level for the nutrition craft. |
+| `nutritionReductionFactor` | `6.0` | `1.0`+ | Factor by which Nutrition Regime reduces remaining soreness. |
+| `nutritionRequireFir` | `true` | `true` / `false` | Require ingredients and reward FIR for Nutrition Regime. |
+| `nutritionIngredients` | Hot Rod, Vitamins, Beef Stew, Zibbo | List of IDs | Item template IDs consumed by nutrition meal (1 each). |
+| `nutritionEndProduct` | Zibbo (`56742c2e...`) | 24-char Hex ID | Item returned upon nutrition completion (preserves lighter). |
+| `activeRecoveryEnabled` | `true` | `true` / `false` | Enable active gym recovery from intense raid combat. |
+| `bossKillResets` | `true` | `true` / `false` | Eliminating any boss clears muscle pain post-raid. |
+| `minPmcKillsForReset` | `5` | `0` – `50` | Minimum PMC kills in a raid to trigger recovery (0 disables). |
+| `requireSurviveForActiveRecovery` | `true` | `true` / `false` | Player must survive or transit from the raid to earn recovery. |
+| `notifyOnActiveRecovery` | `true` | `true` / `false` | Receive an in-game message from Therapist upon active recovery. |
+| `resetItems` | `[]` *(empty)* | List of IDs | Item template IDs; consuming one resets gym. Disabled by default. Only food/drink supported. |
+| `requireFoundInRaid` | `true` | `true` / `false` | Only found-in-raid items trigger the consumable reset. |
 
 ## Compatibility & Alternatives
 
 - **Other mods changing reset time:** Any mod that modifies the gym workout reset duration modifies the same underlying `MusclePain` reward effect in `HideoutTable.Qte`. If multiple mods change this value, whichever mod loads last during SPT server startup will take precedence for the passive cooldown timer.
 - **Server Value Modifier (SVM) as an alternative:** If you already use [Server Value Modifier (SVM)](https://github.com/GhostFenixx/svm-csharp) and *only* want to customize the passive reset timer, SVM already has this built-in under **Hideout > Muscle pain duration in minutes** (`5` to `7200` minutes). You do not need GymRat unless you also want:
+  - Exact tooltip remaining time display on chest muscle pain debuffs.
+  - Custom Hideout recovery crafts (Recovery Shower and Nutrition Regime) with custom UI buttons.
   - Active recovery from intense raid combat (boss kills or >= 5 PMC kills with Therapist in-game notification).
-  - Instant cooldown resets by consuming items (e.g. kvass, energy drinks, stims).
+  - Instant cooldown resets by consuming designated food/drink items (e.g. kvass).
   - Found-in-raid restrictions on reset items.
   - Reset intervals shorter than SVM's 5-minute slider minimum (down to 1 minute).
-- **Using both together:** If you run both GymRat and SVM (or another mod), GymRat's item-reset and active recovery features continue to work normally regardless of load order. Only the passive timer duration will be determined by whichever mod executed last.
+- **Using both together:** If you run both GymRat and SVM (or another mod), GymRat's crafts, exact buff tooltips, and active recovery continue to work normally regardless of load order. Only the passive timer duration will be determined by whichever mod executed last.
 
 ## Is it safe to add to an existing profile?
 

@@ -323,15 +323,15 @@ public class GymRatMod(
     {
         if (bossReset && pmcReset)
         {
-            return $"Hello, sweetie. I heard you eliminated a notorious boss and neutralized {pmcKills} PMCs out there. Combat of that intensity pushed your body to its limit and completely worked out your muscle stiffness. Your muscles have fully recovered — you're ready for another workout.";
+            return $"Young man. I heard you eliminated a notorious boss and neutralized {pmcKills} PMCs out there. Combat of that intensity pushed your body to its limit and completely worked out your muscle stiffness. Your muscles have fully recovered — you're ready for another workout.";
         }
 
         if (bossReset)
         {
-            return "Hello, sweetie. Word came back that you took down a boss out there. Pushing through combat with that level of adrenaline naturally works out lactic acid buildup. Your muscle stiffness has completely cleared up. Take care of yourself out there.";
+            return "Young man. Word came back that you took down a boss out there. Pushing through combat with that level of adrenaline naturally works out lactic acid buildup. Your muscle stiffness has completely cleared up. Take care of yourself out there.";
         }
 
-        return $"Hello, sweetie. Word came back that you took down {pmcKills} PMCs during your raid. That level of exertion has flushed the lactic acid right out of your system. Your muscle soreness has completely cleared up — you're ready to hit the gym again.";
+        return $"Young man. Word came back that you took down {pmcKills} PMCs during your raid. That level of adrenaline has flushed the lactic acid right out of your system. Your muscle soreness has completely cleared up — you're ready to hit the gym again.";
     }
 
     /// <summary>

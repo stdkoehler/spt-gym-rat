@@ -10,11 +10,15 @@
   "gymResetMinutes": 1440,
 
   // Consuming one of these items in the hideout resets the gym immediately
-  // (removes muscle pain). Use item template ids; empty list = feature off.
-  //   5e8f3423fd7471236e6e3b64 = Norvinsky Premium kvass
-  "resetItems": [
-    "5e8f3423fd7471236e6e3b64"
-  ],
+  // (removes muscle pain).
+  // NOTE:
+  // - Deactivated by default (empty list). Only active combat recovery and Hideout crafts are active.
+  // - Only consumable food and drink items (handled via the Eat/Drink route) are supported.
+  // Example enabling Norvinsky Premium kvass:
+  //   "resetItems": [
+  //     "5e8f3423fd7471236e6e3b64" // Norvinsky Premium kvass
+  //   ],
+  "resetItems": [],
 
   // true  = only items found in raid (FIR) trigger the reset
   // false = any copy of the item works

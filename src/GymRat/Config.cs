@@ -19,8 +19,8 @@ public class Config
     /// <summary>Minutes until gym muscle pain (and with it the gym "reset") wears off. Vanilla is 1440 (24h).</summary>
     public int GymResetMinutes { get; set; } = 1440;
 
-    /// <summary>Consuming one of these items (template ids) in the hideout resets the gym immediately.</summary>
-    public List<string> ResetItems { get; set; } = ["5e8f3423fd7471236e6e3b64"]; // Kvass
+    /// <summary>Consuming one of these food/drink items (template ids) in the hideout resets the gym immediately. Deactivated by default (empty list).</summary>
+    public List<string> ResetItems { get; set; } = [];
 
     /// <summary>Only items found in raid trigger the reset.</summary>
     public bool RequireFoundInRaid { get; set; } = true;
@@ -172,6 +172,7 @@ public class Config
             NutritionEndProduct = "56742c2e4bdc2d95058b456d";
         }
 
+        ResetItems ??= [];
         ShowerIngredients ??= [];
         NutritionIngredients ??= [];
 

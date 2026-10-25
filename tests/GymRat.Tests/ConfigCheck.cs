@@ -36,7 +36,7 @@ public static class ConfigCheck
         Expect("shipped minPmcKillsForReset matches the code default", cfg.MinPmcKillsForReset == defaults.MinPmcKillsForReset);
         Expect("shipped requireSurviveForActiveRecovery matches the code default", cfg.RequireSurviveForActiveRecovery == defaults.RequireSurviveForActiveRecovery);
         Expect("shipped notifyOnActiveRecovery matches the code default", cfg.NotifyOnActiveRecovery == defaults.NotifyOnActiveRecovery);
-        Expect("kvass is a default reset item", defaults.ResetItems.Contains("5e8f3423fd7471236e6e3b64"));
+        Expect("resetItems is empty by default", defaults.ResetItems.Count == 0);
         Expect("requireFoundInRaid defaults to true", defaults.RequireFoundInRaid);
 
         Expect("shipped hideoutCraftsEnabled matches the code default", cfg.HideoutCraftsEnabled == defaults.HideoutCraftsEnabled);
@@ -87,7 +87,8 @@ public static class ConfigCheck
             NutritionUnitLevel = 0,
             NutritionReductionFactor = 0.5,
             ShowerEndProduct = "not-a-hex",
-            NutritionEndProduct = "short"
+            NutritionEndProduct = "short",
+            ResetItems = null!
         };
         var lowNotes = low.Sanitise();
         Expect("zero gymResetMinutes is clamped", low.GymResetMinutes == Config.MinResetMinutes);
@@ -99,6 +100,7 @@ public static class ConfigCheck
         Expect("sub-1.0 nutritionReductionFactor is clamped to 1.0", Math.Abs(low.NutritionReductionFactor - 1.0) < 0.001);
         Expect("invalid showerEndProduct reset to default", low.ShowerEndProduct == defaults.ShowerEndProduct);
         Expect("invalid nutritionEndProduct reset to default", low.NutritionEndProduct == defaults.NutritionEndProduct);
+        Expect("null resetItems is initialized to empty", low.ResetItems != null && low.ResetItems.Count == 0);
         Expect("low config generated 9 notes", lowNotes.Count == 9);
 
         Console.WriteLine($"  {pass} passed, {fail} failed");
