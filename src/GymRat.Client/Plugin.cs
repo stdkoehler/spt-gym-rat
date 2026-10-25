@@ -25,11 +25,11 @@ public class Plugin : BaseUnityPlugin
         Instance = this;
         Log = Logger;
 
-        NutritionReductionFactor = Config.Bind("General", "NutritionReductionFactor", 6.0f,
+        NutritionReductionFactor = Config.Bind("Crafts", "NutritionReductionFactor", 6.0f,
             "Factor by which Nutrition Regime reduces muscle pain timer.");
-        ResetItemsCsv = Config.Bind("General", "ResetItems", "",
+        ResetItemsCsv = Config.Bind("ItemConsumeReset", "Items", "",
             "Comma-separated template IDs of consumable food/drink items that reset gym muscle pain when consumed in hideout (e.g. 5e8f3423fd7471236e6e3b64 for kvass).");
-        RequireFoundInRaid = Config.Bind("General", "RequireFoundInRaid", true,
+        RequireFoundInRaid = Config.Bind("ItemConsumeReset", "RequireFoundInRaid", true,
             "Only Found In Raid items trigger gym reset when consumed.");
 
         new Harmony("com.spt.gymrat").PatchAll();

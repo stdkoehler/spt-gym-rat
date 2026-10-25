@@ -85,13 +85,13 @@ public class GymRatMod(
         var patched = PatchResetTime(config.GymResetMinutes * 60L);
         logger.Success($"{Tag} Gym resets every {config.GymResetMinutes} min ({patched} workouts patched)");
 
-        if (config.ResetItems.Count > 0)
+        if (config.ItemConsumeReset.Enabled && config.ItemConsumeReset.Items.Count > 0)
         {
             try
             {
                 HookEatRoute(config);
-                logger.Info($"{Tag} {config.ResetItems.Count} item(s) reset the gym when consumed" +
-                            (config.RequireFoundInRaid ? " (FIR only)" : ""));
+                logger.Info($"{Tag} {config.ItemConsumeReset.Items.Count} item(s) reset the gym when consumed" +
+                            (config.ItemConsumeReset.RequireFoundInRaid ? " (FIR only)" : ""));
             }
             catch (Exception ex)
             {
@@ -99,17 +99,17 @@ public class GymRatMod(
             }
         }
 
-        if (config.ActiveRecoveryEnabled)
+        if (config.ActiveRecovery.Enabled)
         {
             try
             {
                 HookRaidEnd(config);
                 var triggers = new List<string>();
-                if (config.BossKillResets) triggers.Add("Boss kill");
-                if (config.MinPmcKillsForReset > 0) triggers.Add($">={config.MinPmcKillsForReset} PMC kills");
+                if (config.ActiveRecovery.BossKillResets) triggers.Add("Boss kill");
+                if (config.ActiveRecovery.MinPmcKills > 0) triggers.Add($">={config.ActiveRecovery.MinPmcKills} PMC kills");
                 logger.Info($"{Tag} Active recovery enabled ({string.Join(", ", triggers)}" +
-                            (config.RequireSurviveForActiveRecovery ? ", survive required" : "") +
-                            (config.NotifyOnActiveRecovery ? ", Therapist mail alert" : "") + ")");
+                            (config.ActiveRecovery.RequireSurvive ? ", survive required" : "") +
+                            (config.ActiveRecovery.Notify ? ", Therapist mail alert" : "") + ")");
             }
             catch (Exception ex)
             {
@@ -117,14 +117,14 @@ public class GymRatMod(
             }
         }
 
-        if (config.HideoutCraftsEnabled)
+        if (config.Crafts.Enabled)
         {
             try
             {
                 RegisterHideoutCrafts(config);
                 HookTakeProductionRoute(config);
-                logger.Info($"{Tag} Hideout recovery crafts enabled (Recovery Shower in Lavatory lvl {config.ShowerLavatoryLevel}, " +
-                            $"Nutrition Regime in Nutrition Unit lvl {config.NutritionUnitLevel})");
+                logger.Info($"{Tag} Hideout recovery crafts enabled (Recovery Shower in Lavatory lvl {config.Crafts.Shower.LavatoryLevel}, " +
+                            $"Nutrition Regime in Nutrition Unit lvl {config.Crafts.Nutrition.UnitLevel})");
             }
             catch (Exception ex)
             {
@@ -175,7 +175,7 @@ public class GymRatMod(
             .SelectMany(r => r)
             .FirstOrDefault(r => r.Url == "Eat") ?? throw new InvalidOperationException("Eat route not found");
 
-        var items = new HashSet<string>(config.ResetItems, StringComparer.OrdinalIgnoreCase);
+        var items = new HashSet<string>(config.ItemConsumeReset.Items, StringComparer.OrdinalIgnoreCase);
         var original = eatRoute.Action;
 
         var wrapped = new Func<string, PmcData, BaseInteractionRequestData, MongoId, ItemEventRouterResponse,
@@ -191,7 +191,7 @@ public class GymRatMod(
                         : null;
                     trigger = item is not null
                               && items.Contains(item.Template.ToString())
-                              && (!config.RequireFoundInRaid || item.Upd?.SpawnedInSession == true);
+                              && (!config.ItemConsumeReset.RequireFoundInRaid || item.Upd?.SpawnedInSession == true);
                 }
                 catch (Exception ex)
                 {
@@ -265,7 +265,7 @@ public class GymRatMod(
 
     private async Task HandleActiveRecoveryAsync(EndLocalRaidRequestData raidEnd, MongoId sessionId, Config config)
     {
-        if (!config.ActiveRecoveryEnabled) return;
+        if (!config.ActiveRecovery.Enabled) return;
 
         var serverIdParts = raidEnd.ServerId?.Split('.') ?? [];
         var isPmc = (serverIdParts.Length > 1 && serverIdParts[1].Contains("pmc", StringComparison.OrdinalIgnoreCase))
@@ -275,7 +275,7 @@ public class GymRatMod(
 
         var survived = raidEnd.Results is not null
                        && (raidEnd.Results.IsPlayerSurvived() || raidEnd.Results.IsMapToMapTransfer());
-        if (config.RequireSurviveForActiveRecovery && !survived) return;
+        if (config.ActiveRecovery.RequireSurvive && !survived) return;
 
         var victims = raidEnd.Results?.Profile?.Stats?.Eft?.Victims ?? [];
         var bossKilled = false;
@@ -295,8 +295,8 @@ public class GymRatMod(
             }
         }
 
-        var bossReset = config.BossKillResets && bossKilled;
-        var pmcReset = config.MinPmcKillsForReset > 0 && pmcKills >= config.MinPmcKillsForReset;
+        var bossReset = config.ActiveRecovery.BossKillResets && bossKilled;
+        var pmcReset = config.ActiveRecovery.MinPmcKills > 0 && pmcKills >= config.ActiveRecovery.MinPmcKills;
 
         if (!bossReset && !pmcReset) return;
 
@@ -307,7 +307,7 @@ public class GymRatMod(
         await saveServer.SaveProfileAsync(sessionId);
         logger.Success($"{Tag} Active recovery triggered for player {sessionId}! (Boss: {bossKilled}, PMCs: {pmcKills})");
 
-        if (config.NotifyOnActiveRecovery)
+        if (config.ActiveRecovery.Notify)
         {
             var message = BuildRecoveryMessage(bossReset, pmcReset, pmcKills);
             mailSendService.SendDirectNpcMessageToPlayer(
@@ -351,8 +351,8 @@ public class GymRatMod(
         {
             Id = ShowerRecipeId,
             AreaType = HideoutAreas.WaterCloset,
-            ProductionTime = config.ShowerCraftMinutes * 60.0,
-            EndProduct = new MongoId(config.ShowerEndProduct),
+            ProductionTime = config.Crafts.Shower.CraftMinutes * 60.0,
+            EndProduct = new MongoId(config.Crafts.Shower.EndProduct),
             Count = 1,
             Continuous = false,
             Locked = false,
@@ -363,14 +363,14 @@ public class GymRatMod(
                 {
                     Type = RequirementType.Area.ToString(),
                     AreaType = (int)HideoutAreas.WaterCloset,
-                    RequiredLevel = config.ShowerLavatoryLevel
+                    RequiredLevel = config.Crafts.Shower.LavatoryLevel
                 },
-                ..config.ShowerIngredients.Select(id => new Requirement
+                ..config.Crafts.Shower.Ingredients.Select(id => new Requirement
                 {
                     Type = RequirementType.Item.ToString(),
                     TemplateId = new MongoId(id),
                     Count = 1,
-                    IsSpawnedInSession = config.ShowerRequireFir
+                    IsSpawnedInSession = config.Crafts.Shower.RequireFir
                 })
             ]
         };
@@ -379,8 +379,8 @@ public class GymRatMod(
         {
             Id = NutritionRecipeId,
             AreaType = HideoutAreas.Kitchen,
-            ProductionTime = config.NutritionCraftMinutes * 60.0,
-            EndProduct = new MongoId(config.NutritionEndProduct),
+            ProductionTime = config.Crafts.Nutrition.CraftMinutes * 60.0,
+            EndProduct = new MongoId(config.Crafts.Nutrition.EndProduct),
             Count = 1,
             Continuous = false,
             Locked = false,
@@ -391,14 +391,14 @@ public class GymRatMod(
                 {
                     Type = RequirementType.Area.ToString(),
                     AreaType = (int)HideoutAreas.Kitchen,
-                    RequiredLevel = config.NutritionUnitLevel
+                    RequiredLevel = config.Crafts.Nutrition.UnitLevel
                 },
-                ..config.NutritionIngredients.Select(id => new Requirement
+                ..config.Crafts.Nutrition.Ingredients.Select(id => new Requirement
                 {
                     Type = RequirementType.Item.ToString(),
                     TemplateId = new MongoId(id),
                     Count = 1,
-                    IsSpawnedInSession = config.NutritionRequireFir
+                    IsSpawnedInSession = config.Crafts.Nutrition.RequireFir
                 })
             ]
         };
@@ -460,7 +460,7 @@ public class GymRatMod(
 
         if (recipeId == ShowerRecipeId)
         {
-            ApplyCraftRewardFir(result, pmcData, sessionId, config.ShowerEndProduct, config.ShowerRequireFir);
+            ApplyCraftRewardFir(result, pmcData, sessionId, config.Crafts.Shower.EndProduct, config.Crafts.Shower.RequireFir);
 
             var reset = false;
             if (HasMusclePain(pmcData.Health))
@@ -474,26 +474,26 @@ public class GymRatMod(
             await saveServer.SaveProfileAsync(sessionId);
             if (!reset)
             {
-                logger.Info($"{Tag} Recovery Shower taken by player {sessionId} (FIR: {config.ShowerRequireFir}).");
+                logger.Info($"{Tag} Recovery Shower taken by player {sessionId} (FIR: {config.Crafts.Shower.RequireFir}).");
             }
         }
         else if (recipeId == NutritionRecipeId)
         {
-            ApplyCraftRewardFir(result, pmcData, sessionId, config.NutritionEndProduct, config.NutritionRequireFir);
+            ApplyCraftRewardFir(result, pmcData, sessionId, config.Crafts.Nutrition.EndProduct, config.Crafts.Nutrition.RequireFir);
 
             var reduced = false;
             if (HasMusclePain(pmcData.Health))
             {
-                ReduceMusclePain(pmcData.Health, config.NutritionReductionFactor);
+                ReduceMusclePain(pmcData.Health, config.Crafts.Nutrition.ReductionFactor);
                 SyncHealthChanges(result, sessionId, pmcData);
                 reduced = true;
-                logger.Success($"{Tag} Nutrition Regime taken: muscle pain reduced by factor {config.NutritionReductionFactor:0.#} for player {sessionId}!");
+                logger.Success($"{Tag} Nutrition Regime taken: muscle pain reduced by factor {config.Crafts.Nutrition.ReductionFactor:0.#} for player {sessionId}!");
             }
 
             await saveServer.SaveProfileAsync(sessionId);
             if (!reduced)
             {
-                logger.Info($"{Tag} Nutrition Regime taken by player {sessionId} (FIR: {config.NutritionRequireFir}).");
+                logger.Info($"{Tag} Nutrition Regime taken by player {sessionId} (FIR: {config.Crafts.Nutrition.RequireFir}).");
             }
         }
     }

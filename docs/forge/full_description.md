@@ -76,35 +76,36 @@ Out-of-range values are automatically clamped to safe boundaries with a note in 
 
 | Setting | Default | Range | What it does |
 |---|---|---|---|
-| `hideoutCraftsEnabled` | `true` | `true` / `false` | Master switch for both custom recovery crafts in the Hideout. |
-| `showerCraftMinutes` | `30` | `1` – `10080` | Duration in minutes for the Recovery Shower craft. |
-| `showerLavatoryLevel` | `3` | `1` – `3` | Required Lavatory station level to unlock the shower craft. |
-| `showerRequireFir` | `true` | `true` / `false` | Require Found-in-Raid ingredients. Returns the reward as FIR. |
-| `showerIngredients` | Soap, Shampoo, Superwater, Fleece | List of Item IDs | Item template IDs required for the shower craft (1 unit each). |
-| `showerEndProduct` | Fleece (`5e2af477...`) | 24-char Hex ID | Item returned to the player upon taking the shower (returns your towel). |
-| `nutritionCraftMinutes` | `15` | `1` – `10080` | Duration in minutes for the Nutrition Regime craft. |
-| `nutritionUnitLevel` | `1` | `1` – `3` | Required Nutrition Unit level to unlock the craft. |
-| `nutritionReductionFactor` | `6.0` | `1.0`+ | Factor dividing remaining soreness duration (e.g. `6.0` turns 24h into 4h). |
-| `nutritionRequireFir` | `true` | `true` / `false` | Require Found-in-Raid ingredients for the nutrition meal. |
-| `nutritionIngredients` | Hot Rod, Multivitamins, Beef Stew, Zibbo | List of Item IDs | Item template IDs required for the nutrition meal (1 unit each). |
-| `nutritionEndProduct` | Zibbo (`56742c2e...`) | 24-char Hex ID | Item returned to the player upon completing the regime (returns your lighter). |
+| `crafts.enabled` | `true` | `true` / `false` | Master switch for both custom recovery crafts in the Hideout. |
+| `crafts.shower.craftMinutes` | `30` | `1` – `10080` | Duration in minutes for the Recovery Shower craft. |
+| `crafts.shower.lavatoryLevel` | `3` | `1` – `3` | Required Lavatory station level to unlock the shower craft. |
+| `crafts.shower.requireFir` | `true` | `true` / `false` | Require Found-in-Raid ingredients. Returns the reward as FIR. |
+| `crafts.shower.ingredients` | Soap, Shampoo, Superwater, Fleece | List of Item IDs | Item template IDs required for the shower craft (1 unit each). |
+| `crafts.shower.endProduct` | Fleece (`5e2af477...`) | 24-char Hex ID | Item returned to the player upon taking the shower (returns your towel). |
+| `crafts.nutrition.craftMinutes` | `15` | `1` – `10080` | Duration in minutes for the Nutrition Regime craft. |
+| `crafts.nutrition.unitLevel` | `1` | `1` – `3` | Required Nutrition Unit level to unlock the craft. |
+| `crafts.nutrition.reductionFactor` | `6.0` | `1.0`+ | Factor dividing remaining soreness duration (e.g. `6.0` turns 24h into 4h). |
+| `crafts.nutrition.requireFir` | `true` | `true` / `false` | Require Found-in-Raid ingredients for the nutrition meal. |
+| `crafts.nutrition.ingredients` | Hot Rod, Multivitamins, Beef Stew, Zibbo | List of Item IDs | Item template IDs required for the nutrition meal (1 unit each). |
+| `crafts.nutrition.endProduct` | Zibbo (`56742c2e...`) | 24-char Hex ID | Item returned to the player upon completing the regime (returns your lighter). |
 
 #### 3. Active Combat Recovery
 
 | Setting | Default | Range | What it does |
 |---|---|---|---|
-| `activeRecoveryEnabled` | `true` | `true` / `false` | Master switch for clearing muscle pain via raid combat achievements. |
-| `bossKillResets` | `true` | `true` / `false` | Eliminating any Scav Boss, Rogue Boss, or Cultist clears muscle pain post-raid. |
-| `minPmcKillsForReset` | `5` | `0` – `50` (`0` = off) | Minimum PMC kills in a single raid to clear muscle pain. Set to `0` to disable. |
-| `requireSurviveForActiveRecovery` | `true` | `true` / `false` | Player must survive or transit from the raid to earn active recovery. |
-| `notifyOnActiveRecovery` | `true` | `true` / `false` | Therapist sends an in-game message confirming muscle fatigue was treated. |
+| `activeRecovery.enabled` | `true` | `true` / `false` | Master switch for clearing muscle pain via raid combat achievements. |
+| `activeRecovery.bossKillResets` | `true` | `true` / `false` | Eliminating any Scav Boss, Rogue Boss, or Cultist clears muscle pain post-raid. |
+| `activeRecovery.minPmcKills` | `5` | `0` – `50` (`0` = off) | Minimum PMC kills in a single raid to clear muscle pain. Set to `0` to disable. |
+| `activeRecovery.requireSurvive` | `true` | `true` / `false` | Player must survive or transit from the raid to earn active recovery. |
+| `activeRecovery.notify` | `true` | `true` / `false` | Therapist sends an in-game message confirming muscle fatigue was treated. |
 
 #### 4. Consumable Food Resets (Optional)
 
 | Setting | Default | Range | What it does |
 |---|---|---|---|
-| `resetItems` | `[]` *(empty)* | List of Item IDs | Consuming one of these food/beverage items in hideout resets the gym immediately. **Deactivated by default**. |
-| `requireFoundInRaid` | `true` | `true` / `false` | Only Found-in-Raid items trigger the consumable reset when enabled. |
+| `itemConsumeReset.enabled` | `true` | `true` / `false` | Master switch for consumable hideout resets. |
+| `itemConsumeReset.requireFoundInRaid` | `true` | `true` / `false` | Only Found-in-Raid items trigger the consumable reset when enabled. |
+| `itemConsumeReset.items` | `[]` *(empty)* | List of Item IDs | Consuming one of these food/beverage items in hideout resets the gym immediately. **Deactivated by default**. |
 
 *Note: Consumable resets only work with food and beverage items handled by the game's out-of-raid `Eat` route. Medical stims and injectors are not supported.*
 

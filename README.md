@@ -35,29 +35,47 @@ Requires **SPT 4.1.x** and **BepInEx 5.x**.
 Edit `user/mods/GymRat/config.jsonc` (comments are allowed). Out-of-range values are clamped and
 reported in the server log; a file that cannot be parsed disables the mod instead of crashing the server.
 
+### 1. General & Passive Cooldown
+
 | Setting | Default | Range | Meaning |
 |---|---|---|---|
-| `enabled` | `true` | `true` / `false` | Turn the mod off without uninstalling it. |
+| `enabled` | `true` | `true` / `false` | Turn the whole mod off without uninstalling it. |
 | `gymResetMinutes` | `1440` | `1` – `10080` | Minutes until the gym resets naturally (1440 = 24 h). |
-| `hideoutCraftsEnabled` | `true` | `true` / `false` | Enable Hideout recovery crafts (Shower & Nutrition). |
-| `showerCraftMinutes` | `30` | `1` – `10080` | Craft time in minutes for the Recovery Shower. |
-| `showerLavatoryLevel` | `3` | `1` – `3` | Required Lavatory station level for the shower craft. |
-| `showerRequireFir` | `true` | `true` / `false` | Require ingredients and reward FIR for Recovery Shower. |
-| `showerIngredients` | Soap, Shampoo, Superwater, Fleece | List of IDs | Item template IDs consumed by the shower (1 each). |
-| `showerEndProduct` | Fleece (`5e2af477...`) | 24-char Hex ID | Item returned upon shower completion (preserves towel). |
-| `nutritionCraftMinutes` | `15` | `1` – `10080` | Craft time in minutes for the Nutrition Regime. |
-| `nutritionUnitLevel` | `1` | `1` – `3` | Required Nutrition Unit station level for the nutrition craft. |
-| `nutritionReductionFactor` | `6.0` | `1.0`+ | Factor by which Nutrition Regime reduces remaining soreness. |
-| `nutritionRequireFir` | `true` | `true` / `false` | Require ingredients and reward FIR for Nutrition Regime. |
-| `nutritionIngredients` | Hot Rod, Vitamins, Beef Stew, Zibbo | List of IDs | Item template IDs consumed by nutrition meal (1 each). |
-| `nutritionEndProduct` | Zibbo (`56742c2e...`) | 24-char Hex ID | Item returned upon nutrition completion (preserves lighter). |
-| `activeRecoveryEnabled` | `true` | `true` / `false` | Enable active gym recovery from intense raid combat. |
-| `bossKillResets` | `true` | `true` / `false` | Eliminating any boss clears muscle pain post-raid. |
-| `minPmcKillsForReset` | `5` | `0` – `50` | Minimum PMC kills in a raid to trigger recovery (0 disables). |
-| `requireSurviveForActiveRecovery` | `true` | `true` / `false` | Player must survive or transit from the raid to earn recovery. |
-| `notifyOnActiveRecovery` | `true` | `true` / `false` | Receive an in-game message from Therapist upon active recovery. |
-| `resetItems` | `[]` *(empty)* | List of IDs | Item template IDs; consuming one resets gym. Disabled by default. Only food/drink supported. |
-| `requireFoundInRaid` | `true` | `true` / `false` | Only found-in-raid items trigger the consumable reset. |
+
+### 2. Active Combat Recovery
+
+| Setting | Default | Range | Meaning |
+|---|---|---|---|
+| `activeRecovery.enabled` | `true` | `true` / `false` | Enable active gym recovery from intense raid combat. |
+| `activeRecovery.bossKillResets` | `true` | `true` / `false` | Eliminating any boss clears muscle pain post-raid. |
+| `activeRecovery.minPmcKills` | `5` | `0` – `50` | Minimum PMC kills in a raid to trigger recovery (0 disables). |
+| `activeRecovery.requireSurvive` | `true` | `true` / `false` | Player must survive or transit from the raid to earn recovery. |
+| `activeRecovery.notify` | `true` | `true` / `false` | Receive an in-game message from Therapist upon active recovery. |
+
+### 3. Hideout Recovery Crafts
+
+| Setting | Default | Range | Meaning |
+|---|---|---|---|
+| `crafts.enabled` | `true` | `true` / `false` | Enable Hideout recovery crafts (Shower & Nutrition). |
+| `crafts.shower.craftMinutes` | `30` | `1` – `10080` | Craft time in minutes for the Recovery Shower. |
+| `crafts.shower.lavatoryLevel` | `3` | `1` – `3` | Required Lavatory station level for the shower craft. |
+| `crafts.shower.requireFir` | `true` | `true` / `false` | Require ingredients and reward FIR for Recovery Shower. |
+| `crafts.shower.ingredients` | Soap, Shampoo, Superwater, Fleece | List of IDs | Item template IDs consumed by the shower (1 each). |
+| `crafts.shower.endProduct` | Fleece (`5e2af477...`) | 24-char Hex ID | Item returned upon shower completion (preserves towel). |
+| `crafts.nutrition.craftMinutes` | `15` | `1` – `10080` | Craft time in minutes for the Nutrition Regime. |
+| `crafts.nutrition.unitLevel` | `1` | `1` – `3` | Required Nutrition Unit station level for the nutrition craft. |
+| `crafts.nutrition.reductionFactor` | `6.0` | `1.0`+ | Factor by which Nutrition Regime reduces remaining soreness. |
+| `crafts.nutrition.requireFir` | `true` | `true` / `false` | Require ingredients and reward FIR for Nutrition Regime. |
+| `crafts.nutrition.ingredients` | Hot Rod, Vitamins, Beef Stew, Zibbo | List of IDs | Item template IDs consumed by nutrition meal (1 each). |
+| `crafts.nutrition.endProduct` | Zibbo (`56742c2e...`) | 24-char Hex ID | Item returned upon nutrition completion (preserves lighter). |
+
+### 4. Consumable Food Resets (Optional)
+
+| Setting | Default | Range | Meaning |
+|---|---|---|---|
+| `itemConsumeReset.enabled` | `true` | `true` / `false` | Master toggle for consumable item reset. |
+| `itemConsumeReset.requireFoundInRaid` | `true` | `true` / `false` | Only found-in-raid items trigger the consumable reset. |
+| `itemConsumeReset.items` | `[]` *(empty)* | List of IDs | Item template IDs; consuming one resets gym. Disabled by default. Only food/drink supported. |
 
 ## Compatibility & Alternatives
 
