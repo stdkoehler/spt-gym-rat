@@ -10,7 +10,7 @@ public record GymRatMetadata : IModMetadata
     public string Author { get; init; } = "Styrr";
     public List<string>? Contributors { get; init; }
     // Bump before running package.sh - the archive name is taken from this line.
-    public SemanticVersioning.Version Version { get; init; } = new("0.1.0");
+    public SemanticVersioning.Version Version { get; init; } = new("1.0.0");
     public SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.0");
     // GUIDs of mods that must not be loaded together with this one.
     public List<string>? Incompatibilities { get; init; }
