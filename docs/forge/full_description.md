@@ -23,6 +23,8 @@ GymRat's client plugin patches the character health screen buff display to calcu
 - **Chest Buff Tooltip:** Shows exact hours and minutes (e.g. `Severe muscle pain (14 hours 25 minutes left)` or `(42 minutes left)`).
 - **Hideout Craft UI:** Adds custom visual headers, descriptive tooltips, and dedicated action buttons (**"TAKE SHOWER"** / **"START REGIME"**) directly into the Lavatory and Nutrition Unit production panels.
 
+[image: docs/img/MusclePainCounter.png] -> ![image](https://i.imgur.com/smZGddg.png)
+
 #### Hideout Recovery Crafts
 
 Instead of waiting passively, you can use your Hideout stations to recover:
@@ -36,6 +38,8 @@ Instead of waiting passively, you can use your Hideout stations to recover:
   - *Accelerates recovery by 6x (configurable), cutting a 24-hour soreness down to just 4 hours.*
   - **You keep your lighter:** The Zibbo lighter is returned to your inventory as the craft end-product!
 
+[image: docs/img/MusclePainCraft.png] -> ![image](https://i.imgur.com/2xAaQG6.png)
+
 #### Active Combat Recovery
 
 Turn high-stakes raids into gym resets! Pushing high-intensity combat rewards your PMC with full muscular recovery:
@@ -44,6 +48,8 @@ Turn high-stakes raids into gym resets! Pushing high-intensity combat rewards yo
 - **PMC Slayer:** Securing 5 or more PMC kills in a single raid resets your gym cooldown.
 - Surviving the raid is required to get the active recovery.
 
+[image: docs/img/MusclePainActive.png] -> ![image](https://i.imgur.com/dVwFiIq.png)
+
 #### Consumable Food Resets (Optional)
 
 If you prefer consumable resets, you can specify food or beverage items that immediately clear muscle pain when eaten or drank in the hideout:
@@ -51,7 +57,7 @@ If you prefer consumable resets, you can specify food or beverage items that imm
 - **Food & Drink Only:** Only consumable food and drink items handled through the hideout consumption route (`Eat`) are supported (e.g. Norvinsky Kvass). Medical stims or injectors are not supported by this route.
 - An example snippet with Norvinsky Kvass is provided commented out in `config.jsonc`.
 
-#### Safe to Install & Clean Profile
+#### Safe to Install & Clean ProfileV
 
 - **Zero Profile Tampering:** Never injects custom or non-vanilla JSON fields into your `pmc.json` profile save.
 - **Vanilla Invariants:** Cooldown resets and debuff removals only touch standard vanilla EFT health effect dictionaries (`Chest.Effects`).
